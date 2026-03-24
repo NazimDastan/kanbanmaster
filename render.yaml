@@ -1,0 +1,47 @@
+# Render.com Blueprint — Free Tier Deployment
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Go API Backend
+  - type: web
+    name: kanbanmaster-api
+    runtime: go
+    buildCommand: go build -o api ./cmd/api
+    startCommand: ./api
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kanbanmaster-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+    plan: free
+
+  # Vue.js Frontend (Static Site)
+  - type: web
+    name: kanbanmaster-app
+    runtime: static
+    buildCommand: cd app && npm install && npm run build
+    staticPublishPath: app/dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://kanbanmaster-api.onrender.com
+    plan: free
+
+databases:
+  - name: kanbanmaster-db
+    plan: free
+    databaseName: kanbanmaster
+    postgresMajorVersion: "15"

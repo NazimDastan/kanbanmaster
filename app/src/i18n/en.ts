@@ -1,0 +1,295 @@
+export default {
+  // Common
+  common: {
+    save: 'Save',
+    cancel: 'Cancel',
+    create: 'Create',
+    delete: 'Delete',
+    edit: 'Edit',
+    close: 'Close',
+    search: 'Search',
+    loading: 'Loading...',
+    noData: 'No data',
+    confirm: 'Confirm',
+    back: 'Back',
+    next: 'Next',
+    submit: 'Submit',
+    add: 'Add',
+    remove: 'Remove',
+    yes: 'Yes',
+    no: 'No',
+    all: 'All',
+    none: 'None',
+    clickToView: 'Click to view',
+    vsLastPeriod: 'vs last period',
+  },
+
+  // Auth
+  auth: {
+    login: 'Sign In',
+    register: 'Create Account',
+    logout: 'Logout',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    fullName: 'Full Name',
+    welcomeBack: 'Welcome back',
+    signInSubtitle: 'Sign in to continue to your workspace',
+    noAccount: "Don't have an account?",
+    signUp: 'Sign up',
+    hasAccount: 'Already have an account?',
+    signIn: 'Sign in',
+    createAccountTitle: 'Create account',
+    createAccountSubtitle: 'Get started with KanbanMaster',
+    invalidCredentials: 'Invalid email or password',
+    loginFailed: 'Login failed. Please try again.',
+    registerFailed: 'Registration failed. Please try again.',
+    brandTitle: 'Organize. Track. Deliver.',
+    brandDescription: 'Manage your team\'s tasks with powerful Kanban boards, real-time collaboration, and performance insights.',
+    brandJoinTitle: 'Join Your Team',
+    brandJoinDescription: 'Create your account and start managing tasks with your team in minutes.',
+    featureBoards: 'Kanban Boards',
+    featureTeams: 'Team Management',
+    featureAnalytics: 'Analytics',
+  },
+
+  // Dashboard
+  dashboard: {
+    hello: 'Hello, {name}',
+    subtitle: "Here's what's happening with your tasks today.",
+    totalTasks: 'Total Tasks',
+    completed: 'Completed',
+    inProgress: 'In Progress',
+    overdue: 'Overdue',
+    recentActivity: 'Recent Activity',
+    quickActions: 'Quick Actions',
+    newTask: 'New Task',
+    newBoard: 'New Board',
+    inviteMember: 'Invite Member',
+    viewReports: 'View Reports',
+    goToBoards: 'Go to Boards',
+    manageTeams: 'Manage Teams',
+    completionRate: 'Completion Rate',
+    thisWeek: 'This Week',
+    myBoards: 'My Boards',
+    openBoard: 'Open board',
+    noBoardsYet: 'No boards yet',
+    createBoardHint: 'Create a board from the Teams page',
+    // Onboarding
+    welcomeTitle: 'Welcome to KanbanMaster!',
+    welcomeDescription: 'Start by creating your first board. A board contains columns (like Todo, In Progress, Done) where you can add and manage tasks.',
+    step1: 'Create a board',
+    step2: 'Add tasks',
+    step3: 'Track progress',
+    sidebarHint: 'Use the + button in the sidebar under "Boards" to create your first board.',
+    // Task list
+    allTasks: 'All Tasks',
+    completedTasks: 'Completed Tasks',
+    inProgressTasks: 'In Progress',
+    overdueTasks: 'Overdue Tasks',
+    noTasksInCategory: 'No tasks in this category',
+    createTasksHint: 'Create tasks from your boards',
+    tasksCount: '{count} tasks',
+  },
+
+  // Board
+  board: {
+    newTask: 'New Task',
+    addColumn: 'Add Column',
+    columnName: 'Column Name',
+    noColumnsYet: 'No columns yet',
+    noColumnsDescription: 'Add your first column to start organizing tasks.',
+    addTask: 'Add a task',
+    searchTasks: 'Search tasks...',
+  },
+
+  // Task
+  task: {
+    title: 'Task Title',
+    description: 'Description (optional)',
+    priority: 'Priority',
+    deadline: 'Deadline (optional)',
+    assignee: 'Assignee',
+    unassigned: 'Unassigned',
+    noDescription: 'No description provided.',
+    newTask: 'New Task',
+    createTask: 'Create Task',
+    deleteTask: 'Delete Task',
+    delegateTask: 'Delegate Task',
+    delegateTo: 'Delegate to (User ID)',
+    delegateReason: 'Reason for delegation',
+    delegate: 'Delegate',
+    subtasks: 'Subtasks',
+    labels: 'Labels',
+    comments: 'Comments',
+    activity: 'Activity',
+    noActivity: 'No activity yet',
+    noComments: 'No comments yet',
+    writeComment: 'Write a comment...',
+    created: 'Created',
+    updated: 'Updated',
+    priorities: {
+      urgent: 'Urgent',
+      high: 'High',
+      medium: 'Medium',
+      low: 'Low',
+    },
+    deadlineOverdue: '{days}d overdue',
+    deadlineToday: 'Due today',
+    deadlineTomorrow: 'Due tomorrow',
+    deadlineDaysLeft: '{days} days left',
+  },
+
+  // Team
+  team: {
+    teams: 'Teams',
+    newTeam: 'New Team',
+    createTeam: 'Create Team',
+    teamName: 'Team Name',
+    noTeamsYet: 'No teams yet',
+    noTeamsDescription: 'Create your first team to start collaborating.',
+    selectTeam: 'Select a team',
+    selectTeamDescription: 'Choose a team from the list to see its members.',
+    invite: 'Invite',
+    inviteMember: 'Invite Member',
+    emailAddress: 'Email address',
+    role: 'Role',
+    sendInvite: 'Send Invite',
+    noMembers: 'No members yet',
+    inviteFailed: 'Failed to invite member',
+    member: 'Member',
+    leader: 'Leader',
+    viewer: 'Viewer',
+    owner: 'Owner',
+    setRole: 'Set {role}',
+  },
+
+  // Reports
+  reports: {
+    title: 'Reports & Performance',
+    requestReport: 'Request Report',
+    performance: 'Performance',
+    incoming: 'Incoming',
+    sent: 'Sent',
+    pending: 'Pending',
+    efficiency: 'Efficiency',
+    completedLabel: 'Completed',
+    onTime: 'On-Time',
+    targetUserId: 'Target User ID',
+    teamId: 'Team ID',
+    message: 'Message',
+    sendRequest: 'Send',
+    respond: 'Respond',
+    review: 'Review',
+    yourResponse: 'Your Response',
+    noReports: 'No reports',
+    score: 'Score',
+    done: 'Done',
+    late: 'Late',
+    progress: 'Progress',
+    member: 'Member',
+    onTimeCol: 'On Time',
+    requestedReport: '{name} requested a report',
+    reportFrom: 'Report from {name}',
+    noMessage: 'No message',
+    unknown: 'Unknown',
+  },
+
+  // Profile
+  profile: {
+    title: 'Profile Settings',
+    personalInfo: 'Personal Information',
+    changeAvatar: 'Change Avatar',
+    saveChanges: 'Save Changes',
+    changePassword: 'Change Password',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
+    updatePassword: 'Update Password',
+  },
+
+  // Notifications
+  notifications: {
+    title: 'Notifications',
+    markAllRead: 'Mark all read',
+    noNotifications: 'No notifications',
+    assigned: 'Task Assigned',
+    delegated: 'Task Delegated',
+    deadline: 'Deadline Approaching',
+    comment: 'New Comment',
+    reportRequest: 'Report Requested',
+    completed: 'Task Completed',
+    overdue: 'Task Overdue',
+  },
+
+  // Not Found
+  notFound: {
+    title: 'Page Not Found',
+    description: "The page you're looking for doesn't exist.",
+    goHome: 'Go Home',
+  },
+
+  // Filter
+  filter: {
+    title: 'Filters',
+    clearAll: 'Clear All',
+    searchTasks: 'Search tasks...',
+    allPriorities: 'All Priorities',
+    assigneeId: 'Assignee ID',
+    all: 'All',
+    hasDeadline: 'Has Deadline',
+    noDeadline: 'No Deadline',
+  },
+
+  // Labels
+  label: {
+    newLabel: 'New label',
+  },
+
+  // Activity
+  activity: {
+    title: 'Activity',
+    actionText: '{name} {action} this task',
+  },
+
+  // Sidebar
+  sidebar: {
+    dashboard: 'Dashboard',
+    teams: 'Teams',
+    reports: 'Reports',
+    boards: 'Boards',
+    createFirstBoard: 'Create first board',
+    noBoardsYet: 'No boards yet',
+  },
+
+  // Navbar
+  navbar: {
+    profile: 'Profile',
+    logout: 'Logout',
+  },
+
+  // Validation
+  validation: {
+    required: '{field} is required',
+    invalidEmail: 'Invalid email address',
+    minLength: 'Must be at least {min} characters',
+    maxLength: 'Must be less than {max} characters',
+    passwordMismatch: 'Passwords do not match',
+  },
+
+  // Time
+  time: {
+    justNow: 'Just now',
+    minutesAgo: '{n}m ago',
+    hoursAgo: '{n}h ago',
+    daysAgo: '{n}d ago',
+  },
+
+  // Language names
+  languages: {
+    en: 'English',
+    tr: 'Türkçe',
+    de: 'Deutsch',
+    ar: 'العربية',
+  },
+}
