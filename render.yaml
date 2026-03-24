@@ -1,4 +1,4 @@
-# Render.com Blueprint — Free Tier Deployment
+# Render.com Blueprint
 # https://render.com/docs/blueprint-spec
 
 services:
@@ -19,7 +19,6 @@ services:
         generateValue: true
       - key: ENVIRONMENT
         value: production
-    plan: free
 
   # Vue.js Frontend (Static Site)
   - type: web
@@ -38,10 +37,8 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://kanbanmaster-api.onrender.com
-    plan: free
 
 databases:
   - name: kanbanmaster-db
-    plan: free
     databaseName: kanbanmaster
     postgresMajorVersion: "15"
