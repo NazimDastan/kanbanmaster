@@ -1,0 +1,12 @@
+[build]
+  base = "app"
+  command = "npm install && npm run build"
+  publish = "dist"
+
+[build.environment]
+  VITE_API_URL = "https://kanbanmaster-api-production.up.railway.app"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

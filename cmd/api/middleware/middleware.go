@@ -30,9 +30,10 @@ func Logger(next http.Handler) http.Handler {
 // CORS restricts origin to allowed list
 func CORS(next http.Handler) http.Handler {
 	allowedOrigins := map[string]bool{
-		"http://localhost:3000": true,
-		"http://localhost:3001": true,
-		"http://localhost:5173": true,
+		"http://localhost:3000":  true,
+		"http://localhost:3001":  true,
+		"http://localhost:5173":  true,
+		"https://vocal-licorice-48fc8a.netlify.app": true,
 	}
 
 	// Check environment for production origin
