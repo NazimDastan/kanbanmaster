@@ -121,7 +121,7 @@ function handleLanguageChange(code: string) {
     <h1 class="text-xl font-bold">{{ t('profile.title') }}</h1>
 
     <!-- Avatar & Info Card -->
-    <div class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-5 md:p-6">
+    <div class="rounded-2xl border border-white/5 bg-card p-5 md:p-6">
       <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">
         <!-- Avatar -->
         <div class="relative group">
@@ -172,7 +172,7 @@ function handleLanguageChange(code: string) {
     </div>
 
     <!-- Personal Info Form -->
-    <div class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-5 md:p-6">
+    <div class="rounded-2xl border border-white/5 bg-card p-5 md:p-6">
       <div class="flex items-center justify-between mb-5">
         <h3 class="text-sm font-semibold">{{ t('profile.personalInfo') }}</h3>
         <v-icon v-if="profileSaved" icon="mdi-check-circle" color="#10b981" size="18" />
@@ -211,7 +211,7 @@ function handleLanguageChange(code: string) {
     </div>
 
     <!-- Password Form -->
-    <div class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-5 md:p-6">
+    <div class="rounded-2xl border border-white/5 bg-card p-5 md:p-6">
       <div class="flex items-center justify-between mb-5">
         <h3 class="text-sm font-semibold">{{ t('profile.changePassword') }}</h3>
         <v-icon v-if="passwordSaved" icon="mdi-check-circle" color="#10b981" size="18" />
@@ -264,7 +264,7 @@ function handleLanguageChange(code: string) {
     </div>
 
     <!-- Language Preference -->
-    <div class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-5 md:p-6">
+    <div class="rounded-2xl border border-white/5 bg-card p-5 md:p-6">
       <h3 class="text-sm font-semibold mb-4">{{ t('languages.en').includes('English') ? 'Language' : t('profile.title').split(' ')[0] }}</h3>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">

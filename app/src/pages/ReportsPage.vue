@@ -90,7 +90,7 @@ function scoreColor(s: number) { return s >= 90 ? '#10b981' : s >= 75 ? '#6366f1
     </div>
 
     <!-- Performance -->
-    <div v-if="activeTab === 'performance'" class="rounded-xl border border-white/5 bg-[#0f0f1a] overflow-hidden">
+    <div v-if="activeTab === 'performance'" class="rounded-xl border border-white/5 bg-card overflow-hidden">
       <div class="grid grid-cols-[auto_1fr_auto_auto_auto_auto_1fr] gap-x-4 text-[11px] font-semibold uppercase tracking-widest text-white/30 px-4 py-2.5 border-b border-white/5">
         <span>#</span><span>{{ t('reports.member') }}</span><span>{{ t('reports.score') }}</span><span>{{ t('reports.done') }}</span><span>{{ t('reports.onTimeCol') }}</span><span>{{ t('reports.late') }}</span><span>{{ t('reports.progress') }}</span>
       </div>
@@ -111,7 +111,7 @@ function scoreColor(s: number) { return s >= 90 ? '#10b981' : s >= 75 ? '#6366f1
     </div>
 
     <!-- Performance Chart -->
-    <div v-if="activeTab === 'performance'" class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-5 mt-4">
+    <div v-if="activeTab === 'performance'" class="rounded-2xl border border-white/5 bg-card p-5 mt-4">
       <h3 class="text-sm font-semibold mb-4">{{ t('reports.onTimeCol') }} vs {{ t('reports.late') }}</h3>
       <PerformanceBarChart :members="performanceData" />
       <div class="flex justify-center gap-4 mt-4">
@@ -121,7 +121,7 @@ function scoreColor(s: number) { return s >= 90 ? '#10b981' : s >= 75 ? '#6366f1
     </div>
 
     <!-- Incoming / Sent reports (same structure) -->
-    <div v-if="activeTab === 'incoming' || activeTab === 'sent'" class="rounded-xl border border-white/5 bg-[#0f0f1a] overflow-hidden">
+    <div v-if="activeTab === 'incoming' || activeTab === 'sent'" class="rounded-xl border border-white/5 bg-card overflow-hidden">
       <div v-for="report in (activeTab === 'incoming' ? incomingReports : sentReports)" :key="report.id" class="flex items-center gap-3 px-4 py-3 border-b border-white/[0.03]">
         <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary/50 to-secondary/50 flex items-center justify-center flex-shrink-0">
           <span class="text-[9px] text-white font-semibold">{{ getInitials((activeTab === 'incoming' ? report.requester?.name : report.targetUser?.name) ?? 'U') }}</span>

@@ -156,7 +156,7 @@ async function handleRoleChange(userId: string, role: string) {
 
       <!-- Team detail -->
       <div class="lg:col-span-2">
-        <div v-if="teamStore.currentTeam" class="rounded-xl border border-white/5 bg-[#0f0f1a] overflow-hidden">
+        <div v-if="teamStore.currentTeam" class="rounded-xl border border-white/5 bg-card overflow-hidden">
           <div class="flex items-center justify-between px-4 py-3 border-b border-white/5">
             <h2 class="text-sm font-semibold">{{ teamStore.currentTeam.name }}</h2>
             <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-account-plus-outline" style="text-transform: none" @click="showInviteModal = true">{{ t('team.invite') }}</v-btn>

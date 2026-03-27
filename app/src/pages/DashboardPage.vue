@@ -103,7 +103,7 @@ onMounted(loadDashboard)
 
     <template v-else>
       <!-- Onboarding: No boards yet -->
-      <div v-if="boardStore.boards.length === 0 && allTasks.length === 0" class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-8 md:p-12 text-center">
+      <div v-if="boardStore.boards.length === 0 && allTasks.length === 0" class="rounded-2xl border border-white/5 bg-card p-8 md:p-12 text-center">
         <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
           <v-icon icon="mdi-view-column-outline" size="32" class="text-primary-light" />
         </div>
@@ -135,7 +135,7 @@ onMounted(loadDashboard)
         <button
           v-for="s in stats"
           :key="s.key"
-          class="rounded-xl border border-white/5 bg-[#0f0f1a] p-4 transition-all duration-200 hover:border-primary/30 hover:bg-[#12121f] text-left group"
+          class="rounded-xl border border-white/5 bg-card p-4 transition-all duration-200 hover:border-primary/30 hover:bg-card-hover text-left group"
           :class="{ '!border-primary/40 glow-primary': activeFilter === s.filter && showTaskList }"
           @click="openFilter(s.filter)"
         >
@@ -153,7 +153,7 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Task list panel (shows when stat clicked) -->
-      <div v-if="showTaskList" class="rounded-2xl border border-white/5 bg-[#0f0f1a] overflow-hidden">
+      <div v-if="showTaskList" class="rounded-2xl border border-white/5 bg-card overflow-hidden">
         <div class="flex items-center justify-between px-4 md:px-5 py-3 border-b border-white/5">
           <div class="flex items-center gap-3">
             <h2 class="text-sm font-semibold">{{ filterTitle }}</h2>
@@ -205,7 +205,7 @@ onMounted(loadDashboard)
 
       <!-- Chart + Boards -->
       <div v-if="totalCount > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-5">
+        <div class="rounded-2xl border border-white/5 bg-card p-5">
           <h2 class="text-sm font-semibold mb-4">{{ t('dashboard.totalTasks') }}</h2>
           <TaskPieChart :completed="completedCount" :in-progress="inProgressCount" :overdue="overdueCount" />
           <div class="flex justify-center gap-4 mt-4">
@@ -216,7 +216,7 @@ onMounted(loadDashboard)
         </div>
 
         <!-- Completion rate large -->
-        <div class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-5 flex flex-col justify-center">
+        <div class="rounded-2xl border border-white/5 bg-card p-5 flex flex-col justify-center">
           <h2 class="text-sm font-semibold mb-6">{{ t('dashboard.completionRate') }}</h2>
           <div class="text-center mb-4">
             <p class="text-5xl font-bold" :class="completedCount / Math.max(totalCount, 1) >= 0.7 ? 'text-success' : completedCount / Math.max(totalCount, 1) >= 0.4 ? 'text-primary-light' : 'text-warning'">

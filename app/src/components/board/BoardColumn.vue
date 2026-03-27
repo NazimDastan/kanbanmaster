@@ -35,7 +35,7 @@ function handleDragEnd(event: { item?: { dataset?: { taskId?: string } }; to?: {
 </script>
 
 <template>
-  <div class="flex flex-col min-w-[272px] max-w-[272px] h-full rounded-xl bg-[#0f0f1a]/60 border border-white/[0.04]">
+  <div class="flex flex-col min-w-[272px] max-w-[272px] h-full rounded-xl bg-card-60 border border-white/[0.04]">
     <!-- Header -->
     <div class="flex items-center justify-between px-3 py-2.5">
       <div class="flex items-center gap-2">
@@ -49,7 +49,7 @@ function handleDragEnd(event: { item?: { dataset?: { taskId?: string } }; to?: {
 
     <!-- Quick add inline -->
     <div v-if="showQuickAdd" class="px-2 pb-2">
-      <div class="rounded-lg border border-primary/30 bg-[#161625] p-2.5">
+      <div class="rounded-lg border border-primary/30 bg-elevated p-2.5">
         <input
           v-model="quickTitle"
           :placeholder="t('task.title')"

@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="rounded-xl border border-white/5 bg-[#0f0f1a] p-4 transition-all duration-200 hover:border-white/10 hover:bg-[#12121f]">
+  <div class="rounded-xl border border-white/5 bg-card p-4 transition-all duration-200 hover:border-white/10 hover:bg-card-hover">
     <div class="flex items-start justify-between">
       <div>
         <p class="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1">{{ title }}</p>

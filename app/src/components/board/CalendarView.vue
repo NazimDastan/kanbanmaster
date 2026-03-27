@@ -104,7 +104,7 @@ function priorityColor(p: Priority): string {
         :key="i"
         class="min-h-[70px] p-1 rounded-lg border transition-colors"
         :class="{
-          'border-white/[0.04] bg-[#0f0f1a]': day.isCurrentMonth,
+          'border-white/[0.04] bg-card': day.isCurrentMonth,
           'border-transparent bg-transparent': !day.isCurrentMonth,
           '!border-primary/30 !bg-primary/5': day.isToday,
         }"

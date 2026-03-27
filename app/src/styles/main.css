@@ -369,6 +369,15 @@ html.light [class*="bg-white/"] { background-color: rgba(0, 0, 0, 0.03) !importa
 .light .v-tab--selected { color: #6366f1 !important; }
 .light .v-progress-linear__background { background: #e2e8f0 !important; }
 
+/* Theme-aware background classes (used by sed-replaced templates) */
+.bg-card { background: var(--bg-card) !important; }
+.bg-card-60 { background: color-mix(in srgb, var(--bg-card) 60%, transparent) !important; }
+.bg-card-hover { background: var(--bg-card) !important; }
+.bg-elevated { background: var(--bg-elevated) !important; }
+.bg-elevated-80 { background: color-mix(in srgb, var(--bg-elevated) 80%, transparent) !important; }
+.bg-elevated-50 { background: color-mix(in srgb, var(--bg-elevated) 50%, transparent) !important; }
+.hover\:bg-card-hover:hover { background: var(--bg-hover) !important; }
+
 /* Theme-aware utility classes */
 .t-bg { background: var(--bg); }
 .t-bg-card { background: var(--bg-card); }

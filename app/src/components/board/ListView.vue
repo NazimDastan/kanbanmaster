@@ -22,7 +22,7 @@ function priorityColor(p: Priority): string { return PRIORITY_CONFIG[p].color }
 </script>
 
 <template>
-  <div class="rounded-xl border border-white/5 bg-[#0f0f1a] overflow-hidden">
+  <div class="rounded-xl border border-white/5 bg-card overflow-hidden">
     <!-- Header -->
     <div class="grid grid-cols-[1fr_100px_100px_120px_50px] gap-2 px-4 py-2.5 border-b border-white/5 text-[10px] font-semibold uppercase tracking-widest text-white/25">
       <span>{{ t('task.title') }}</span>

@@ -20,7 +20,7 @@ const priorityColors: Record<string, string> = {
 
 <template>
   <div
-    class="rounded-lg bg-[#161625]/80 border border-white/[0.04] cursor-pointer transition-all duration-150 hover:border-white/10 hover:bg-[#1a1a2e] group"
+    class="rounded-lg bg-elevated-80 border border-white/[0.04] cursor-pointer transition-all duration-150 hover:border-white/10 hover:bg-card-hover group"
     @click="emit('click', task)"
   >
     <div class="h-[2px] rounded-t-lg" :style="{ background: priorityColors[task.priority] ?? '#6366f1' }" />
