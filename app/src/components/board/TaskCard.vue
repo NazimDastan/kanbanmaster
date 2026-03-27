@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Task } from '@/types/task'
-import type { Priority } from '@/types/task'
 import { formatDeadline } from '@/utils/date'
 import { getInitials } from '@/utils/format'
 import { computed } from 'vue'
