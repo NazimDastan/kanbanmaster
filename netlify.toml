@@ -4,7 +4,7 @@
   publish = "dist"
 
 [build.environment]
-  VITE_API_URL = "https://kanbanmaster-api-production.up.railway.app"
+  VITE_API_URL = "https://alona-nonforested-remedios.ngrok-free.dev"
 
 [[redirects]]
   from = "/*"
