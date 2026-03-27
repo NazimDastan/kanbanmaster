@@ -22,7 +22,7 @@ const navItems = computed(() => [
 ])
 
 function isActive(path: string): boolean {
-  if (path === '/' ) return route.path === '/'
+  if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
 }
 
@@ -35,14 +35,11 @@ async function handleCreateBoard() {
   if (!newBoardName.value.trim()) return
   creating.value = true
   try {
-    // Ensure team exists
     let teams = await teamService.list()
     let teamId: string
-
     if (teams.length > 0) {
       teamId = teams[0].id
     } else {
-      // Create org + team automatically
       let orgs = await organizationService.list()
       let orgId: string
       if (orgs.length > 0) {
@@ -54,7 +51,6 @@ async function handleCreateBoard() {
       const newTeam = await teamService.create('My Team', orgId)
       teamId = newTeam.id
     }
-
     const board = await boardService.create({ name: newBoardName.value, teamId })
     boardStore.boards.push(board)
     newBoardName.value = ''
@@ -69,7 +65,7 @@ async function handleCreateBoard() {
 <template>
   <aside
     class="flex-shrink-0 flex flex-col border-r transition-all duration-200"
-    style="background: var(--bg-card, #0f0f1a); border-color: var(--border, rgba(255,255,255,0.05))"
+    :style="{ background: 'var(--bg-card)', borderColor: 'var(--border)' }"
     :class="collapsed ? 'w-16' : 'w-56'"
   >
     <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
@@ -78,17 +74,19 @@ async function handleCreateBoard() {
         :key="item.to"
         :to="item.to"
         class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150"
-        :class="isActive(item.to) ? 'bg-primary/15 text-primary-light' : 'text-white/50 hover:text-white/80 hover:bg-white/5'"
+        :style="isActive(item.to)
+          ? { background: 'var(--bg-active)', color: '#818cf8' }
+          : { color: 'var(--text-secondary)' }"
       >
         <v-icon :icon="item.icon" size="18" />
         <span v-if="!collapsed" class="truncate">{{ item.title }}</span>
       </router-link>
 
       <!-- Boards section -->
-      <div class="pt-4 mt-4 border-t border-white/5">
+      <div class="pt-4 mt-4" :style="{ borderTop: '1px solid var(--border)' }">
         <div v-if="!collapsed" class="flex items-center justify-between px-3 mb-2">
-          <span class="text-[10px] font-semibold uppercase tracking-widest text-white/30">{{ t('sidebar.boards') }}</span>
-          <button class="text-white/30 hover:text-primary transition-colors" @click="showNewBoard = !showNewBoard">
+          <span class="text-[10px] font-semibold uppercase tracking-widest" :style="{ color: 'var(--text-muted)' }">{{ t('sidebar.boards') }}</span>
+          <button :style="{ color: 'var(--text-muted)' }" class="hover:text-primary transition-colors" @click="showNewBoard = !showNewBoard">
             <v-icon :icon="showNewBoard ? 'mdi-close' : 'mdi-plus'" size="14" />
           </button>
         </div>
@@ -99,7 +97,8 @@ async function handleCreateBoard() {
             <input
               v-model="newBoardName"
               :placeholder="t('board.columnName')"
-              class="flex-1 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white placeholder:text-white/20 outline-none focus:border-primary/40"
+              class="flex-1 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-primary/40"
+              :style="{ background: 'var(--bg-input)', border: '1px solid var(--border-hover)', color: 'var(--text)' }"
               @keyup.enter="handleCreateBoard"
             />
             <button
@@ -117,7 +116,9 @@ async function handleCreateBoard() {
           v-for="board in boardStore.boards"
           :key="board.id"
           class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all text-left"
-          :class="route.path === `/boards/${board.id}` ? 'bg-primary/15 text-primary-light' : 'text-white/50 hover:text-white/80 hover:bg-white/5'"
+          :style="route.path === `/boards/${board.id}`
+            ? { background: 'var(--bg-active)', color: '#818cf8' }
+            : { color: 'var(--text-secondary)' }"
           @click="router.push(`/boards/${board.id}`)"
         >
           <v-icon icon="mdi-view-column-outline" size="16" />
@@ -126,9 +127,10 @@ async function handleCreateBoard() {
 
         <!-- Empty state -->
         <div v-if="boardStore.boards.length === 0 && !collapsed && !showNewBoard" class="px-3 py-3">
-          <p class="text-[11px] text-white/20 mb-2">{{ t('sidebar.noBoardsYet') }}</p>
+          <p class="text-[11px] mb-2" :style="{ color: 'var(--text-faint)' }">{{ t('sidebar.noBoardsYet') }}</p>
           <button
-            class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-white/10 text-[11px] text-white/30 hover:text-primary-light hover:border-primary/30 transition-all"
+            class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed text-[11px] hover:text-primary-light hover:border-primary/30 transition-all"
+            :style="{ borderColor: 'var(--border-hover)', color: 'var(--text-muted)' }"
             @click="showNewBoard = true"
           >
             <v-icon icon="mdi-plus" size="14" />
@@ -138,8 +140,12 @@ async function handleCreateBoard() {
       </div>
     </nav>
 
-    <div class="p-2 border-t border-white/5">
-      <button class="w-full flex items-center justify-center py-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/5 transition-all" @click="collapsed = !collapsed">
+    <div class="p-2" :style="{ borderTop: '1px solid var(--border)' }">
+      <button
+        class="w-full flex items-center justify-center py-1.5 rounded-lg transition-all"
+        :style="{ color: 'var(--text-muted)' }"
+        @click="collapsed = !collapsed"
+      >
         <v-icon :icon="collapsed ? 'mdi-chevron-right' : 'mdi-chevron-left'" size="18" />
       </button>
     </div>
