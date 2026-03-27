@@ -7,6 +7,7 @@ import AppEmptyState from '@/components/common/AppEmptyState.vue'
 import { getInitials } from '@/utils/format'
 import type { Organization } from '@/types/team'
 import { useToast } from '@/composables/useToast'
+import { invitationService } from '@/services/invitationService'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -68,11 +69,15 @@ async function handleInvite() {
   inviteLoading.value = true
   inviteError.value = ''
   try {
-    await teamStore.inviteMember(teamStore.currentTeam.id, inviteEmail.value, inviteRole.value)
-    toast.success(t('team.inviteMember') + ' ✓')
+    await invitationService.send(teamStore.currentTeam.id, inviteEmail.value, inviteRole.value)
+    toast.success(t('team.sendInvite') + ' ✓')
     showInviteModal.value = false
     inviteEmail.value = ''
-  } catch { inviteError.value = t('team.inviteFailed'); toast.error(t('team.inviteFailed')) }
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { data?: { error?: string } } }
+    inviteError.value = axiosErr.response?.data?.error ?? t('team.inviteFailed')
+    toast.error(inviteError.value)
+  }
   finally { inviteLoading.value = false }
 }
 

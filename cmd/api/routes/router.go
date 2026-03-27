@@ -28,6 +28,7 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	notifService := services.NewNotificationService(db)
 	perfService := services.NewPerformanceService(db)
 	attachmentService := services.NewAttachmentService(db)
+	invitationService := services.NewInvitationService(db, notifService)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
@@ -43,6 +44,7 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	notifHandler := handlers.NewNotificationHandler(notifService)
 	dashHandler := handlers.NewDashboardHandler(perfService)
 	attachHandler := handlers.NewAttachmentHandler(attachmentService)
+	invHandler := handlers.NewInvitationHandler(invitationService)
 
 	// Health check
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +82,13 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	protected.HandleFunc("GET /api/teams/{id}", teamHandler.Get)
 	protected.HandleFunc("PUT /api/teams/{id}", teamHandler.Update)
 	protected.HandleFunc("DELETE /api/teams/{id}", teamHandler.Delete)
-	protected.HandleFunc("POST /api/teams/{id}/invite", teamHandler.Invite)
+	protected.HandleFunc("POST /api/teams/{id}/invite", invHandler.Send)
+	protected.HandleFunc("GET /api/teams/{id}/invitations", invHandler.GetTeamInvitations)
+
+	// Invitations (user)
+	protected.HandleFunc("GET /api/invitations", invHandler.GetPending)
+	protected.HandleFunc("POST /api/invitations/{id}/accept", invHandler.Accept)
+	protected.HandleFunc("POST /api/invitations/{id}/reject", invHandler.Reject)
 	protected.HandleFunc("DELETE /api/teams/{id}/members/{userId}", teamHandler.RemoveMember)
 	protected.HandleFunc("PATCH /api/teams/{id}/members/{userId}/role", teamHandler.UpdateMemberRole)
 
@@ -170,6 +178,8 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	mux.Handle("/api/labels/", authMiddleware(protected))
 	mux.Handle("/api/comments/", authMiddleware(protected))
 	mux.Handle("/api/attachments/", authMiddleware(protected))
+	mux.Handle("/api/invitations", authMiddleware(protected))
+	mux.Handle("/api/invitations/", authMiddleware(protected))
 	mux.Handle("/api/reports", authMiddleware(protected))
 	mux.Handle("/api/reports/", authMiddleware(protected))
 	mux.Handle("/api/dashboard/", authMiddleware(protected))

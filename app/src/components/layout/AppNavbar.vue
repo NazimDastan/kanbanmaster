@@ -6,6 +6,7 @@ import { useNotificationStore } from '@/stores/useNotificationStore'
 import { getInitials } from '@/utils/format'
 import NotificationBell from '@/components/notification/NotificationBell.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
+import InvitationPanel from '@/components/team/InvitationPanel.vue'
 import { useTheme } from '@/composables/useTheme'
 
 const { t } = useI18n()
@@ -34,6 +35,7 @@ const initials = computed(() => getInitials(authStore.user?.name ?? ''))
       </button>
 
       <LanguageSwitcher />
+      <InvitationPanel />
 
       <NotificationBell
         :count="notificationStore.unreadCount"
