@@ -43,6 +43,7 @@ const allTasks = computed(() => {
 })
 
 // Filtered columns — search + priority filter applied
+// Used by draggable when search/filter is active
 const filteredColumns = computed(() => {
   if (!boardStore.currentBoard?.columns) return []
   const q = searchQuery.value.toLowerCase().trim()
@@ -219,7 +220,7 @@ async function handleAddColumn() {
     <!-- Kanban View -->
     <div v-else-if="viewMode === 'kanban'" class="flex-1 flex p-4 md:p-5 overflow-x-auto min-h-0">
       <draggable
-        :list="boardStore.currentBoard!.columns"
+        :list="filteredColumns"
         item-key="id"
         group="kanban-columns"
         direction="horizontal"

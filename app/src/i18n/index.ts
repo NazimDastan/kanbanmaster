@@ -4,7 +4,11 @@ import tr from './tr'
 import de from './de'
 import ar from './ar'
 
-const savedLocale = localStorage.getItem('locale') ?? 'en'
+type Locale = 'en' | 'tr' | 'de' | 'ar'
+
+const validLocales: Locale[] = ['en', 'tr', 'de', 'ar']
+const saved = localStorage.getItem('locale') as Locale | null
+const savedLocale: Locale = saved && validLocales.includes(saved) ? saved : 'en'
 
 const i18n = createI18n({
   legacy: false,
@@ -14,10 +18,11 @@ const i18n = createI18n({
 })
 
 export function setLocale(locale: string) {
-  i18n.global.locale.value = locale
-  localStorage.setItem('locale', locale)
-  document.documentElement.setAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
-  document.documentElement.setAttribute('lang', locale)
+  const l = locale as Locale
+  i18n.global.locale.value = l
+  localStorage.setItem('locale', l)
+  document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr')
+  document.documentElement.setAttribute('lang', l)
 }
 
 export default i18n

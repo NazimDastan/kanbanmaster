@@ -61,7 +61,7 @@ export const useTeamStore = defineStore('team', () => {
     await teamService.updateMemberRole(teamId, userId, role)
     if (currentTeam.value?.id === teamId) {
       const member = currentTeam.value.members.find((m) => m.userId === userId)
-      if (member) member.role = role
+      if (member) member.role = role as import('@/types/user').UserRole
     }
   }
 

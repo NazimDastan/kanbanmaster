@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { Task, Priority } from '@/types/task'
 import { PRIORITY_CONFIG } from '@/types/task'
 
-const { t } = useI18n()
+useI18n()
 
 const props = defineProps<{ tasks: Task[] }>()
 const emit = defineEmits<{ taskClick: [task: Task] }>()

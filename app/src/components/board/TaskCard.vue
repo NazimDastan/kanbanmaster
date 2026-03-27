@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Task } from '@/types/task'
-import { PRIORITY_CONFIG } from '@/types/task'
+import type { Priority } from '@/types/task'
 import { formatDeadline } from '@/utils/date'
 import { getInitials } from '@/utils/format'
 import { computed } from 'vue'
@@ -8,7 +8,6 @@ import { computed } from 'vue'
 const props = defineProps<{ task: Task }>()
 const emit = defineEmits<{ click: [task: Task] }>()
 
-const priorityConfig = computed(() => PRIORITY_CONFIG[props.task.priority])
 const deadlineInfo = computed(() => props.task.deadline ? formatDeadline(props.task.deadline) : null)
 const completedSubtasks = computed(() => props.task.subtasks?.filter((s) => s.isCompleted).length ?? 0)
 const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
