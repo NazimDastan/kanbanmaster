@@ -9,10 +9,14 @@ import type { Organization } from '@/types/team'
 import { useToast } from '@/composables/useToast'
 import { invitationService } from '@/services/invitationService'
 import { useConfirm } from '@/composables/useConfirm'
+import { useBoardStore } from '@/stores/useBoardStore'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const toast = useToast()
 const { confirm } = useConfirm()
+const boardStore = useBoardStore()
+const router = useRouter()
 const teamStore = useTeamStore()
 const showInviteModal = ref(false)
 const showCreateModal = ref(false)
@@ -30,12 +34,17 @@ const roleOptions = [{ value: 'member', title: 'Member' }, { value: 'leader', ti
 
 async function loadTeams() {
   await teamStore.fetchTeams()
+  await boardStore.fetchBoards()
   if (teamStore.teams.length > 0) await teamStore.fetchTeam(teamStore.teams[0].id)
   try {
     organizations.value = await organizationService.list()
   } catch {
     // No orgs yet
   }
+}
+
+function getTeamBoards(teamId: string) {
+  return boardStore.boards.filter(b => b.teamId === teamId)
 }
 onMounted(loadTeams)
 
@@ -181,7 +190,31 @@ async function handleRoleChange(userId: string, role: string) {
               </div>
             </div>
           </div>
-          <div v-else class="py-8 text-center text-xs text-white/25">{{ t('team.noMembers') }}</div>
+          <div v-else class="py-8 text-center text-xs" :style="{ color: 'var(--text-muted)' }">{{ t('team.noMembers') }}</div>
+
+          <!-- Team Boards -->
+          <div :style="{ borderTop: '1px solid var(--border)' }" class="px-4 py-3">
+            <p class="text-[10px] font-semibold uppercase tracking-widest mb-3" :style="{ color: 'var(--text-muted)' }">{{ t('sidebar.boards') }}</p>
+            <div v-if="getTeamBoards(teamStore.currentTeam.id).length > 0" class="space-y-1.5">
+              <button
+                v-for="board in getTeamBoards(teamStore.currentTeam.id)"
+                :key="board.id"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left"
+                :style="{ border: '1px solid var(--border)' }"
+                @click="router.push(`/boards/${board.id}`)"
+              >
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0">
+                  <v-icon icon="mdi-view-column-outline" size="16" class="text-primary-light" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium truncate" :style="{ color: 'var(--text)' }">{{ board.name }}</p>
+                  <p class="text-[10px]" :style="{ color: 'var(--text-muted)' }">{{ board.createdAt.slice(0, 10) }}</p>
+                </div>
+                <v-icon icon="mdi-chevron-right" size="16" :style="{ color: 'var(--text-faint)' }" />
+              </button>
+            </div>
+            <p v-else class="text-xs text-center py-3" :style="{ color: 'var(--text-muted)' }">{{ t('dashboard.noBoardsYet') }}</p>
+          </div>
         </div>
 
         <AppEmptyState v-else icon="mdi-account-group-outline" :title="t('team.selectTeam')" :description="t('team.selectTeamDescription')" />
