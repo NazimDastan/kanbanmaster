@@ -26,31 +26,39 @@ const creating = ref(false)
 async function loadBoards() {
   await boardStore.fetchBoards()
   await teamStore.fetchTeams()
-  if (teamStore.teams.length > 0 && !selectedTeamId.value) {
-    selectedTeamId.value = teamStore.teams[0].id
-  }
+  // Default to personal
+  selectedTeamId.value = 'personal'
 }
 onMounted(loadBoards)
+
+async function getOrCreatePersonalTeam(): Promise<string> {
+  // Find or create a "Personal" team
+  const existing = teamStore.teams.find(t => t.name === 'Personal')
+  if (existing) return existing.id
+
+  let orgs = await organizationService.list()
+  let orgId: string
+  if (orgs.length > 0) {
+    orgId = orgs[0].id
+  } else {
+    const newOrg = await organizationService.create('My Workspace')
+    orgId = newOrg.id
+  }
+  const newTeam = await teamService.create('Personal', orgId)
+  await teamStore.fetchTeams()
+  return newTeam.id
+}
 
 async function handleCreate() {
   if (!newBoardName.value.trim()) return
   creating.value = true
   try {
-    let teamId = selectedTeamId.value
+    let teamId: string
 
-    // If no team selected/exists, create one
-    if (!teamId) {
-      let orgs = await organizationService.list()
-      let orgId: string
-      if (orgs.length > 0) {
-        orgId = orgs[0].id
-      } else {
-        const newOrg = await organizationService.create('My Organization')
-        orgId = newOrg.id
-      }
-      const newTeam = await teamService.create('My Team', orgId)
-      teamId = newTeam.id
-      selectedTeamId.value = teamId
+    if (selectedTeamId.value === 'personal' || !selectedTeamId.value) {
+      teamId = await getOrCreatePersonalTeam()
+    } else {
+      teamId = selectedTeamId.value
     }
 
     const board = await boardService.create({ name: newBoardName.value, teamId })
@@ -111,9 +119,11 @@ async function handleDelete(boardId: string) {
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold truncate" :style="{ color: 'var(--text)' }">{{ board.name }}</p>
-          <p class="text-[11px] mt-0.5" :style="{ color: 'var(--text-muted)' }">
-            {{ teamStore.teams.find(t => t.id === board.teamId)?.name ?? '' }} · {{ board.createdAt.slice(0, 10) }}
-          </p>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <v-icon :icon="teamStore.teams.find(t => t.id === board.teamId)?.name === 'Personal' ? 'mdi-account-outline' : 'mdi-account-group'" size="12" :style="{ color: 'var(--text-muted)' }" />
+            <span class="text-[11px]" :style="{ color: 'var(--text-muted)' }">{{ teamStore.teams.find(t => t.id === board.teamId)?.name ?? 'Personal' }}</span>
+            <span class="text-[10px]" :style="{ color: 'var(--text-faint)' }">· {{ board.createdAt.slice(0, 10) }}</span>
+          </div>
         </div>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button class="p-1.5 rounded-lg hover:bg-error/10 transition-colors" @click.stop="handleDelete(board.id)">
@@ -135,12 +145,26 @@ async function handleDelete(boardId: string) {
           autofocus
           class="mb-2"
         />
-        <!-- Team selector -->
-        <div v-if="teamStore.teams.length > 0" class="mb-3">
+        <!-- Workspace selector -->
+        <div class="mb-3">
           <p class="text-[10px] font-semibold uppercase tracking-widest mb-2" :style="{ color: 'var(--text-muted)' }">{{ t('team.teams') }}</p>
           <div class="flex flex-wrap gap-2">
+            <!-- Personal option (default) -->
             <button
-              v-for="team in teamStore.teams"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all"
+              :style="{
+                borderColor: selectedTeamId === 'personal' ? 'rgba(16,185,129,0.4)' : 'var(--border)',
+                background: selectedTeamId === 'personal' ? 'rgba(16,185,129,0.1)' : 'transparent',
+                color: selectedTeamId === 'personal' ? '#10b981' : 'var(--text-secondary)',
+              }"
+              @click="selectedTeamId = 'personal'"
+            >
+              <v-icon icon="mdi-account-outline" size="14" />
+              Personal
+            </button>
+            <!-- Team options -->
+            <button
+              v-for="team in teamStore.teams.filter(t => t.name !== 'Personal')"
               :key="team.id"
               class="flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all"
               :style="{
