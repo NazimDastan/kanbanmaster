@@ -8,19 +8,27 @@ import { organizationService, teamService } from '@/services/teamService'
 import { useToast } from '@/composables/useToast'
 import { useConfirm } from '@/composables/useConfirm'
 import AppEmptyState from '@/components/common/AppEmptyState.vue'
+import { useTeamStore } from '@/stores/useTeamStore'
+import type { Team } from '@/types/team'
 
 const { t } = useI18n()
 const router = useRouter()
 const boardStore = useBoardStore()
+const teamStore = useTeamStore()
 const { confirm } = useConfirm()
 const toast = useToast()
 
 const showCreate = ref(false)
 const newBoardName = ref('')
+const selectedTeamId = ref('')
 const creating = ref(false)
 
 async function loadBoards() {
   await boardStore.fetchBoards()
+  await teamStore.fetchTeams()
+  if (teamStore.teams.length > 0 && !selectedTeamId.value) {
+    selectedTeamId.value = teamStore.teams[0].id
+  }
 }
 onMounted(loadBoards)
 
@@ -28,11 +36,10 @@ async function handleCreate() {
   if (!newBoardName.value.trim()) return
   creating.value = true
   try {
-    let teams = await teamService.list()
-    let teamId: string
-    if (teams.length > 0) {
-      teamId = teams[0].id
-    } else {
+    let teamId = selectedTeamId.value
+
+    // If no team selected/exists, create one
+    if (!teamId) {
       let orgs = await organizationService.list()
       let orgId: string
       if (orgs.length > 0) {
@@ -43,10 +50,12 @@ async function handleCreate() {
       }
       const newTeam = await teamService.create('My Team', orgId)
       teamId = newTeam.id
+      selectedTeamId.value = teamId
     }
+
     const board = await boardService.create({ name: newBoardName.value, teamId })
     boardStore.boards.push(board)
-    toast.success(t('board.addColumn') + ' ✓')
+    toast.success(t('common.create') + ' ✓')
     newBoardName.value = ''
     showCreate.value = false
     router.push(`/boards/${board.id}`)
@@ -102,7 +111,9 @@ async function handleDelete(boardId: string) {
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold truncate" :style="{ color: 'var(--text)' }">{{ board.name }}</p>
-          <p class="text-[11px] mt-0.5" :style="{ color: 'var(--text-muted)' }">{{ board.createdAt.slice(0, 10) }}</p>
+          <p class="text-[11px] mt-0.5" :style="{ color: 'var(--text-muted)' }">
+            {{ teamStore.teams.find(t => t.id === board.teamId)?.name ?? '' }} · {{ board.createdAt.slice(0, 10) }}
+          </p>
         </div>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button class="p-1.5 rounded-lg hover:bg-error/10 transition-colors" @click.stop="handleDelete(board.id)">
@@ -114,17 +125,37 @@ async function handleDelete(boardId: string) {
     </div>
 
     <!-- Create dialog -->
-    <v-dialog v-model="showCreate" max-width="400">
+    <v-dialog v-model="showCreate" max-width="420">
       <v-card class="pa-5" color="surface">
-        <h3 class="text-sm font-bold mb-3">{{ t('dashboard.newBoard') }}</h3>
+        <h3 class="text-sm font-bold mb-4">{{ t('dashboard.newBoard') }}</h3>
         <v-text-field
           v-model="newBoardName"
           :label="t('board.columnName')"
           prepend-inner-icon="mdi-view-column-outline"
           autofocus
-          @keyup.enter="handleCreate"
+          class="mb-2"
         />
-        <div class="flex justify-end gap-2 mt-3">
+        <!-- Team selector -->
+        <div v-if="teamStore.teams.length > 0" class="mb-3">
+          <p class="text-[10px] font-semibold uppercase tracking-widest mb-2" :style="{ color: 'var(--text-muted)' }">{{ t('team.teams') }}</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="team in teamStore.teams"
+              :key="team.id"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-all"
+              :style="{
+                borderColor: selectedTeamId === team.id ? 'rgba(99,102,241,0.4)' : 'var(--border)',
+                background: selectedTeamId === team.id ? 'rgba(99,102,241,0.1)' : 'transparent',
+                color: selectedTeamId === team.id ? '#818cf8' : 'var(--text-secondary)',
+              }"
+              @click="selectedTeamId = team.id"
+            >
+              <v-icon icon="mdi-account-group" size="14" />
+              {{ team.name }}
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2">
           <v-btn variant="text" size="small" @click="showCreate = false">{{ t('common.cancel') }}</v-btn>
           <v-btn color="primary" size="small" :disabled="!newBoardName.trim()" :loading="creating" @click="handleCreate">{{ t('common.create') }}</v-btn>
         </div>
