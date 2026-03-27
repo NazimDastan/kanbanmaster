@@ -23,6 +23,8 @@ const editTitle = ref(props.task.title)
 const editDescription = ref(props.task.description ?? '')
 const editPriority = ref<Priority>(props.task.priority)
 const editDeadline = ref(props.task.deadline?.slice(0, 10) ?? '')
+const editAssigneeId = ref('')
+const showAssigneeInput = ref(false)
 const saving = ref(false)
 const hasChanges = ref(false)
 
@@ -78,6 +80,18 @@ async function handleSave() {
     toast.error('Failed to save')
   } finally {
     saving.value = false
+  }
+}
+
+async function handleAssigneeChange() {
+  if (!editAssigneeId.value.trim()) return
+  try {
+    await taskService.assign(props.task.id, editAssigneeId.value)
+    toast.success(t('task.assignee') + ' ✓')
+    showAssigneeInput.value = false
+    emit('updated')
+  } catch {
+    toast.error('Failed')
   }
 }
 
@@ -192,19 +206,42 @@ const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
         </div>
       </div>
 
-      <!-- Assignee -->
+      <!-- Assignee (editable) -->
       <div class="px-5 py-4 section-border">
-        <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-2">{{ t('task.assignee') }}</p>
+        <p class="text-[10px] font-semibold uppercase tracking-widest mb-2" :style="{ color: 'var(--text-muted)' }">{{ t('task.assignee') }}</p>
         <div v-if="task.assignee" class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-secondary/60 flex items-center justify-center">
             <span class="text-[10px] text-white font-semibold">{{ getInitials(task.assignee.name) }}</span>
           </div>
-          <p class="text-sm font-medium">{{ task.assignee.name }}</p>
+          <p class="text-sm font-medium" :style="{ color: 'var(--text)' }">{{ task.assignee.name }}</p>
+          <button class="ml-auto text-[11px] text-error/60 hover:text-error transition-colors" @click="editAssigneeId = ''; showAssigneeInput = true">
+            <v-icon icon="mdi-close-circle-outline" size="16" />
+          </button>
         </div>
-        <p v-else class="text-sm text-white/30">{{ t('task.unassigned') }}</p>
+        <div v-else>
+          <div v-if="showAssigneeInput" class="flex gap-2">
+            <input
+              v-model="editAssigneeId"
+              placeholder="User ID"
+              class="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none field-border"
+              :style="{ background: 'var(--bg-input)', color: 'var(--text)' }"
+              @keyup.enter="handleAssigneeChange"
+            />
+            <button class="px-2 py-1.5 rounded-lg bg-primary/20 text-primary-light hover:bg-primary/30 transition-colors" @click="handleAssigneeChange">
+              <v-icon icon="mdi-check" size="14" />
+            </button>
+            <button class="px-2 py-1.5 rounded-lg transition-colors" :style="{ color: 'var(--text-muted)' }" @click="showAssigneeInput = false">
+              <v-icon icon="mdi-close" size="14" />
+            </button>
+          </div>
+          <button v-else class="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed transition-all text-sm" :style="{ borderColor: 'var(--border)', color: 'var(--text-muted)' }" @click="showAssigneeInput = true">
+            <v-icon icon="mdi-account-plus-outline" size="16" />
+            {{ t('task.unassigned') }}
+          </button>
+        </div>
       </div>
 
-      <!-- Description (editable) -->
+      <!-- Description (editable) — moved below assignee -->
       <div class="px-5 py-4 section-border">
         <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-2">{{ t('task.description') }}</p>
         <textarea

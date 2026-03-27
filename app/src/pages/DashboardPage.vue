@@ -82,10 +82,18 @@ onMounted(loadDashboard)
 
 <template>
   <div class="p-4 md:p-6 lg:p-8 space-y-6">
-    <!-- Header -->
-    <div>
-      <h1 class="text-xl md:text-2xl font-bold">{{ t('dashboard.hello', { name: authStore.userName || 'User' }) }}</h1>
-      <p class="text-sm text-white/40 mt-0.5">{{ t('dashboard.subtitle') }}</p>
+    <!-- Header + Quick Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold">{{ t('dashboard.hello', { name: authStore.userName || 'User' }) }}</h1>
+        <p class="text-sm mt-0.5" :style="{ color: 'var(--text-secondary)' }">{{ t('dashboard.subtitle') }}</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <v-btn prepend-icon="mdi-view-column-outline" variant="tonal" color="primary" size="small" to="/teams">{{ t('dashboard.goToBoards') }}</v-btn>
+        <v-btn prepend-icon="mdi-account-group-outline" variant="tonal" color="secondary" size="small" to="/teams">{{ t('dashboard.manageTeams') }}</v-btn>
+        <v-btn prepend-icon="mdi-chart-bar" variant="tonal" size="small" to="/reports">{{ t('dashboard.viewReports') }}</v-btn>
+        <v-btn v-if="allTasks.length > 0" prepend-icon="mdi-download-outline" variant="tonal" size="small" @click="exportTasksToCSV(allTasks)">Export CSV</v-btn>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -220,59 +228,6 @@ onMounted(loadDashboard)
         </div>
       </div>
 
-      <!-- Content: Boards + Quick Actions -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        <!-- My Boards -->
-        <div class="lg:col-span-2 rounded-2xl border border-white/5 bg-[#0f0f1a] overflow-hidden">
-          <div class="px-4 md:px-5 py-3.5 border-b border-white/5">
-            <h2 class="text-sm font-semibold">{{ t('dashboard.myBoards') }}</h2>
-          </div>
-
-          <div v-if="boardStore.boards.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4">
-            <button
-              v-for="board in boardStore.boards"
-              :key="board.id"
-              class="flex items-center gap-3 p-3 rounded-xl border border-white/5 bg-[#161625]/50 hover:border-primary/20 hover:bg-[#161625] transition-all text-left"
-              @click="navigateToBoard(board.id)"
-            >
-              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0">
-                <v-icon icon="mdi-view-column-outline" size="20" class="text-primary-light" />
-              </div>
-              <div class="min-w-0">
-                <p class="text-sm font-medium truncate">{{ board.name }}</p>
-                <p class="text-[11px] text-white/25">{{ t('dashboard.openBoard') }}</p>
-              </div>
-              <v-icon icon="mdi-chevron-right" size="16" class="text-white/15 ml-auto" />
-            </button>
-          </div>
-
-          <div v-else class="py-10 text-center">
-            <v-icon icon="mdi-view-column-outline" size="36" class="text-white/10 mb-2" />
-            <p class="text-sm text-white/30">{{ t('dashboard.noBoardsYet') }}</p>
-            <p class="text-[11px] text-white/15 mt-1">{{ t('dashboard.createBoardHint') }}</p>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="rounded-2xl border border-white/5 bg-[#0f0f1a] p-4 md:p-5">
-          <h2 class="text-sm font-semibold mb-4">{{ t('dashboard.quickActions') }}</h2>
-          <div class="space-y-2">
-            <v-btn block prepend-icon="mdi-view-column-outline" variant="tonal" color="primary" class="justify-start" style="text-transform: none" to="/teams">{{ t('dashboard.goToBoards') }}</v-btn>
-            <v-btn block prepend-icon="mdi-account-group-outline" variant="tonal" color="secondary" class="justify-start" style="text-transform: none" to="/teams">{{ t('dashboard.manageTeams') }}</v-btn>
-            <v-btn block prepend-icon="mdi-chart-bar" variant="tonal" class="justify-start" style="text-transform: none" to="/reports">{{ t('dashboard.viewReports') }}</v-btn>
-            <v-btn v-if="allTasks.length > 0" block prepend-icon="mdi-download-outline" variant="tonal" class="justify-start" style="text-transform: none" @click="exportTasksToCSV(allTasks)">Export CSV</v-btn>
-          </div>
-
-          <div class="mt-5 pt-4 border-t border-white/5">
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3">{{ t('dashboard.completionRate') }}</p>
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs text-white/40">{{ t('dashboard.taskCount', { completed: completedCount, total: totalCount }) }}</span>
-              <span class="text-xs font-semibold text-success">{{ totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0 }}%</span>
-            </div>
-            <v-progress-linear :model-value="totalCount > 0 ? (completedCount / totalCount) * 100 : 0" color="#10b981" height="4" rounded bg-color="surface" />
-          </div>
-        </div>
-      </div>
     </template>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useBoardStore } from '@/stores/useBoardStore'
@@ -75,6 +75,7 @@ async function loadBoard() {
   await boardStore.fetchBoard(route.params.id as string)
 }
 onMounted(loadBoard)
+watch(() => route.params.id, loadBoard)
 
 function handleTaskClick(task: Task) {
   taskStore.selectedTask = task
