@@ -6,11 +6,13 @@ import { useBoardStore } from '@/stores/useBoardStore'
 import { boardService } from '@/services/boardService'
 import { organizationService, teamService } from '@/services/teamService'
 import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
 import AppEmptyState from '@/components/common/AppEmptyState.vue'
 
 const { t } = useI18n()
 const router = useRouter()
 const boardStore = useBoardStore()
+const { confirm } = useConfirm()
 const toast = useToast()
 
 const showCreate = ref(false)
@@ -54,6 +56,8 @@ async function handleCreate() {
 }
 
 async function handleDelete(boardId: string) {
+  const ok = await confirm({ title: t('common.delete'), message: t('common.confirm') + '?', confirmText: t('common.delete'), danger: true })
+  if (!ok) return
   await boardStore.deleteBoard(boardId)
   toast.success(t('common.delete') + ' ✓')
 }

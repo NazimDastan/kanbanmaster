@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import ToastContainer from '@/components/common/ToastContainer.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -43,5 +44,6 @@ onMounted(() => authStore.fetchUser())
       </div>
     </template>
     <ToastContainer />
+    <ConfirmDialog />
   </v-app>
 </template>

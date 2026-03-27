@@ -8,9 +8,11 @@ import { getInitials } from '@/utils/format'
 import type { Organization } from '@/types/team'
 import { useToast } from '@/composables/useToast'
 import { invitationService } from '@/services/invitationService'
+import { useConfirm } from '@/composables/useConfirm'
 
 const { t } = useI18n()
 const toast = useToast()
+const { confirm } = useConfirm()
 const teamStore = useTeamStore()
 const showInviteModal = ref(false)
 const showCreateModal = ref(false)
@@ -81,8 +83,17 @@ async function handleInvite() {
   finally { inviteLoading.value = false }
 }
 
+async function handleDeleteTeam(teamId: string) {
+  const ok = await confirm({ title: t('common.delete'), message: t('team.teams') + ' — ' + t('common.confirm') + '?', confirmText: t('common.delete'), danger: true })
+  if (!ok) return
+  await teamStore.deleteTeam(teamId)
+  toast.success(t('common.delete') + ' ✓')
+}
+
 async function handleRemoveMember(userId: string) {
   if (!teamStore.currentTeam) return
+  const ok = await confirm({ title: t('common.remove'), message: t('common.confirm') + '?', confirmText: t('common.remove'), danger: true })
+  if (!ok) return
   await teamStore.removeMember(teamStore.currentTeam.id, userId)
   toast.success(t('common.remove') + ' ✓')
 }
@@ -110,21 +121,28 @@ async function handleRoleChange(userId: string, role: string) {
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- Team list -->
       <div class="space-y-2">
-        <button
+        <div
           v-for="team in teamStore.teams"
           :key="team.id"
-          class="w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left"
-          :class="teamStore.currentTeam?.id === team.id ? 'border-primary/30 bg-primary/5' : 'border-white/5 bg-[#0f0f1a] hover:border-white/10'"
-          @click="selectTeam(team.id)"
+          class="flex items-center gap-3 p-3 rounded-xl border transition-all group"
+          :style="{ background: teamStore.currentTeam?.id === team.id ? 'var(--bg-active)' : 'var(--bg-card)', borderColor: teamStore.currentTeam?.id === team.id ? 'rgba(99,102,241,0.3)' : 'var(--border)' }"
         >
-          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-            <v-icon icon="mdi-account-group" size="18" class="text-primary-light" />
-          </div>
-          <div>
-            <p class="text-sm font-medium">{{ team.name }}</p>
-            <p class="text-[11px] text-white/30">{{ t('team.teams') }}</p>
-          </div>
-        </button>
+          <button class="flex items-center gap-3 flex-1 text-left" @click="selectTeam(team.id)">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+              <v-icon icon="mdi-account-group" size="18" class="text-primary-light" />
+            </div>
+            <div>
+              <p class="text-sm font-medium" :style="{ color: 'var(--text)' }">{{ team.name }}</p>
+              <p class="text-[11px]" :style="{ color: 'var(--text-muted)' }">{{ t('team.teams') }}</p>
+            </div>
+          </button>
+          <button
+            class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-error/10 transition-all"
+            @click="handleDeleteTeam(team.id)"
+          >
+            <v-icon icon="mdi-delete-outline" size="16" class="text-error/50" />
+          </button>
+        </div>
       </div>
 
       <!-- Team detail -->

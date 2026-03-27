@@ -16,10 +16,12 @@ import ListView from '@/components/board/ListView.vue'
 import { delegationService } from '@/services/reportService'
 import { useKeyboard } from '@/composables/useKeyboard'
 import draggable from 'vuedraggable'
+import { useConfirm } from '@/composables/useConfirm'
 import type { Task } from '@/types/task'
 
 const { t } = useI18n()
 const toast = useToast()
+const { confirm } = useConfirm()
 const route = useRoute()
 const boardStore = useBoardStore()
 const taskStore = useTaskStore()
@@ -119,6 +121,8 @@ async function handleTaskSubmit(data: { columnId: string; title: string; descrip
 }
 
 async function handleDeleteTask(taskId: string) {
+  const ok = await confirm({ title: t('task.deleteTask'), message: t('common.confirm') + '?', confirmText: t('common.delete'), danger: true })
+  if (!ok) return
   await taskStore.deleteTask(taskId)
   toast.success(t('task.deleteTask') + ' ✓')
   showTaskDrawer.value = false
