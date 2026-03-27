@@ -129,7 +129,7 @@ body {
   transform: translateX(100%);
 }
 
-/* Light mode overrides */
+/* Light mode overrides — comprehensive */
 .light .glass { background: rgba(255, 255, 255, 0.8); border-color: rgba(0, 0, 0, 0.06); }
 .light .glass-light { background: rgba(255, 255, 255, 0.6); border-color: rgba(0, 0, 0, 0.04); }
 .light .glow-primary { box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); }
@@ -138,6 +138,76 @@ body {
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
 }
+
+/* Override Tailwind dark backgrounds in light mode */
+.light .bg-\[\#0f0f1a\], .light .bg-\[\#0f0f1a\]\/60 { background: #ffffff !important; }
+.light .bg-\[\#0a0a0f\] { background: #f8fafc !important; }
+.light .bg-\[\#161625\], .light .bg-\[\#161625\]\/80, .light .bg-\[\#161625\]\/50 { background: #f1f5f9 !important; }
+.light .bg-\[\#1e1e32\] { background: #e2e8f0 !important; }
+.light .bg-\[\#1a1a2e\] { background: #f1f5f9 !important; }
+.light .bg-\[\#12121f\] { background: #f8fafc !important; }
+
+/* Override white opacity backgrounds */
+.light .bg-white\/5, .light .bg-white\/\[0\.02\], .light .bg-white\/\[0\.03\], .light .bg-white\/\[0\.04\] {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Override border colors */
+.light .border-white\/5, .light .border-white\/\[0\.04\], .light .border-white\/\[0\.06\] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+.light .border-white\/10, .light .border-white\/\[0\.08\] {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Override text colors */
+.light .text-white { color: #1e293b !important; }
+.light .text-white\/80 { color: rgba(30, 41, 59, 0.8) !important; }
+.light .text-white\/70 { color: rgba(30, 41, 59, 0.7) !important; }
+.light .text-white\/60 { color: rgba(30, 41, 59, 0.6) !important; }
+.light .text-white\/50 { color: rgba(30, 41, 59, 0.5) !important; }
+.light .text-white\/40 { color: rgba(30, 41, 59, 0.4) !important; }
+.light .text-white\/30 { color: rgba(30, 41, 59, 0.3) !important; }
+.light .text-white\/25 { color: rgba(30, 41, 59, 0.25) !important; }
+.light .text-white\/20 { color: rgba(30, 41, 59, 0.2) !important; }
+.light .text-white\/15 { color: rgba(30, 41, 59, 0.15) !important; }
+.light .text-white\/10 { color: rgba(30, 41, 59, 0.1) !important; }
+
+/* Override divide colors */
+.light .divide-white\/\[0\.03\] > * + * { border-color: rgba(0, 0, 0, 0.06) !important; }
+
+/* Override hover backgrounds */
+.light .hover\:bg-white\/5:hover, .light .hover\:bg-white\/\[0\.02\]:hover, .light .hover\:bg-white\/\[0\.04\]:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Override placeholder */
+.light .placeholder\:text-white\/20::placeholder { color: rgba(0, 0, 0, 0.3) !important; }
+
+/* Override gradient text for light */
+.light .text-glow { text-shadow: 0 0 40px rgba(99, 102, 241, 0.3), 0 0 80px rgba(99, 102, 241, 0.1); }
+
+/* Fix scrollbar for light */
+.light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+.light ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Vuetify overrides for light */
+.light .v-list { background: #ffffff !important; }
+.light .v-card { background: #ffffff !important; }
+.light .v-navigation-drawer { background: #ffffff !important; }
+
+/* Theme-aware utility classes */
+.t-bg { background: var(--bg); }
+.t-bg-card { background: var(--bg-card); }
+.t-bg-elevated { background: var(--bg-elevated); }
+.t-bg-hover:hover { background: var(--bg-hover); }
+.t-bg-input { background: var(--bg-input); }
+.t-border { border-color: var(--border); }
+.t-border-hover:hover { border-color: var(--border-hover); }
+.t-text { color: var(--text); }
+.t-text-secondary { color: var(--text-secondary); }
+.t-text-muted { color: var(--text-muted); }
+.t-text-faint { color: var(--text-faint); }
 
 /* Column drag ghost */
 .column-ghost { opacity: 0.3; }

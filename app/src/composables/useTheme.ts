@@ -9,36 +9,42 @@ const vars: Record<Theme, Record<string, string>> = {
   dark: {
     '--bg': '#0a0a0f',
     '--bg-card': '#0f0f1a',
+    '--bg-elevated': '#161625',
+    '--bg-hover': 'rgba(255,255,255,0.02)',
     '--bg-input': 'rgba(255,255,255,0.05)',
+    '--bg-active': 'rgba(99,102,241,0.15)',
     '--border': 'rgba(255,255,255,0.04)',
+    '--border-hover': 'rgba(255,255,255,0.1)',
     '--text': '#f1f5f9',
     '--text-secondary': '#94a3b8',
+    '--text-muted': 'rgba(255,255,255,0.25)',
+    '--text-faint': 'rgba(255,255,255,0.15)',
+    '--shadow': '0 4px 24px rgba(0,0,0,0.3)',
   },
   light: {
     '--bg': '#f8fafc',
     '--bg-card': '#ffffff',
+    '--bg-elevated': '#f1f5f9',
+    '--bg-hover': 'rgba(0,0,0,0.02)',
     '--bg-input': 'rgba(0,0,0,0.04)',
+    '--bg-active': 'rgba(99,102,241,0.1)',
     '--border': 'rgba(0,0,0,0.08)',
+    '--border-hover': 'rgba(0,0,0,0.15)',
     '--text': '#1e293b',
     '--text-secondary': '#64748b',
+    '--text-muted': 'rgba(0,0,0,0.3)',
+    '--text-faint': 'rgba(0,0,0,0.1)',
+    '--shadow': '0 4px 24px rgba(0,0,0,0.08)',
   },
 }
 
 function applyTheme(t: Theme) {
   const root = document.documentElement
-
-  // Apply CSS variables
   Object.entries(vars[t]).forEach(([k, v]) => root.style.setProperty(k, v))
-
-  // Toggle class
   root.classList.toggle('dark', t === 'dark')
   root.classList.toggle('light', t === 'light')
-
-  // Body
-  document.body.style.backgroundColor = t === 'dark' ? '#0a0a0f' : '#f8fafc'
-  document.body.style.color = t === 'dark' ? '#f1f5f9' : '#1e293b'
-
-  // Vuetify
+  document.body.style.backgroundColor = vars[t]['--bg']
+  document.body.style.color = vars[t]['--text']
   vuetify.theme.global.name.value = t === 'dark' ? 'kanbanDark' : 'kanbanLight'
 }
 

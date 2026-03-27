@@ -34,6 +34,7 @@ func CORS(next http.Handler) http.Handler {
 		"http://localhost:3001":  true,
 		"http://localhost:5173":  true,
 		"https://vocal-licorice-48fc8a.netlify.app": true,
+		"https://kanbanmaster.netlify.app": true,
 		"https://alona-nonforested-remedios.ngrok-free.dev": true,
 	}
 
