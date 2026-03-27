@@ -45,7 +45,13 @@ function applyTheme(t: Theme) {
   root.classList.toggle('light', t === 'light')
   document.body.style.backgroundColor = vars[t]['--bg']
   document.body.style.color = vars[t]['--text']
-  vuetify.theme.global.name.value = t === 'dark' ? 'kanbanDark' : 'kanbanLight'
+  // Vuetify 4 uses theme.change() instead of theme.global.name.value
+  const themeName = t === 'dark' ? 'kanbanDark' : 'kanbanLight'
+  if (typeof vuetify.theme.change === 'function') {
+    vuetify.theme.change(themeName)
+  } else {
+    vuetify.theme.global.name.value = themeName
+  }
 }
 
 watchEffect(() => {

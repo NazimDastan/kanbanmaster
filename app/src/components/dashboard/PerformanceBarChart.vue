@@ -9,11 +9,11 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip)
 const { theme } = useTheme()
 
 const props = defineProps<{
-  members: { name: string; onTime: number; overdue: number }[]
+  members: { name?: string; userName?: string; onTime: number; overdue: number }[]
 }>()
 
 const chartData = computed(() => ({
-  labels: props.members.map(m => m.name.split(' ')[0]),
+  labels: props.members.map(m => (m.name ?? m.userName ?? '?').split(' ')[0]),
   datasets: [
     { label: 'On Time', data: props.members.map(m => m.onTime), backgroundColor: '#10b981', borderRadius: 4, barPercentage: 0.6 },
     { label: 'Overdue', data: props.members.map(m => m.overdue), backgroundColor: '#ef4444', borderRadius: 4, barPercentage: 0.6 },

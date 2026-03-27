@@ -162,7 +162,7 @@ function scoreColor(s: number) { return s >= 90 ? '#10b981' : s >= 75 ? '#6366f1
         </div>
 
         <!-- Chart -->
-        <div class="rounded-2xl p-5" :style="{ background: 'var(--bg-card)', border: '1px solid var(--border)' }">
+        <div v-if="performanceData.length > 0" class="rounded-2xl p-5" :style="{ background: 'var(--bg-card)', border: '1px solid var(--border)' }">
           <h3 class="text-sm font-semibold mb-4" :style="{ color: 'var(--text)' }">{{ t('reports.onTimeCol') }} vs {{ t('reports.late') }}</h3>
           <PerformanceBarChart :members="performanceData" />
           <div class="flex justify-center gap-4 mt-4">
