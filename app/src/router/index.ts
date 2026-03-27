@@ -20,6 +20,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/boards',
+    name: 'Boards',
+    component: () => import('@/pages/BoardsPage.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/boards/:id',
     name: 'Board',
     component: () => import('@/pages/BoardPage.vue'),

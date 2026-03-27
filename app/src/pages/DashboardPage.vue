@@ -89,7 +89,7 @@ onMounted(loadDashboard)
         <p class="text-sm mt-0.5" :style="{ color: 'var(--text-secondary)' }">{{ t('dashboard.subtitle') }}</p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <v-btn prepend-icon="mdi-view-column-outline" variant="tonal" color="primary" size="small" to="/teams">{{ t('dashboard.goToBoards') }}</v-btn>
+        <v-btn prepend-icon="mdi-view-column-outline" variant="tonal" color="primary" size="small" to="/boards">{{ t('dashboard.goToBoards') }}</v-btn>
         <v-btn prepend-icon="mdi-account-group-outline" variant="tonal" color="secondary" size="small" to="/teams">{{ t('dashboard.manageTeams') }}</v-btn>
         <v-btn prepend-icon="mdi-chart-bar" variant="tonal" size="small" to="/reports">{{ t('dashboard.viewReports') }}</v-btn>
         <v-btn v-if="allTasks.length > 0" prepend-icon="mdi-download-outline" variant="tonal" size="small" @click="exportTasksToCSV(allTasks)">Export CSV</v-btn>
