@@ -97,8 +97,8 @@ const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
 
 <template>
   <div
-    class="h-full flex flex-col bg-[#0f0f1a] transition-all duration-300"
-    :style="rootStyle"
+    class="h-full flex flex-col transition-all duration-300"
+    :style="[rootStyle, { background: 'var(--bg-card)' }]"
   >
     <!-- Priority top bar indicator -->
     <div class="h-[3px] flex-shrink-0 transition-all duration-300" :style="{ background: `linear-gradient(90deg, ${priorityConfig.color}, transparent)` }" />
@@ -108,7 +108,7 @@ const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
       <div class="flex items-center gap-2 flex-1 mr-2">
         <!-- Save indicator -->
         <div v-if="hasChanges" class="w-2 h-2 rounded-full bg-warning animate-pulse flex-shrink-0" />
-        <span class="text-xs text-white/30">{{ t('task.title') }}</span>
+        <span class="text-xs" :style="{ color: 'var(--text-muted)' }">{{ t('task.title') }}</span>
       </div>
       <div class="flex items-center gap-1">
         <!-- Save button -->
@@ -125,18 +125,18 @@ const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
 
         <v-menu>
           <template #activator="{ props: menuProps }">
-            <button v-bind="menuProps" class="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
-              <v-icon icon="mdi-dots-horizontal" size="18" class="text-white/40" />
+            <button v-bind="menuProps" class="p-1.5 rounded-lg transition-colors">
+              <v-icon icon="mdi-dots-horizontal" size="18" :style="{ color: 'var(--text-muted)' }" />
             </button>
           </template>
-          <v-list density="compact" min-width="180" bg-color="#1e1e32" class="rounded-xl border border-white/5">
+          <v-list density="compact" min-width="180" class="rounded-xl" :style="{ background: 'var(--bg-card)', border: '1px solid var(--border)' }">
             <v-list-item prepend-icon="mdi-swap-horizontal" :title="t('task.delegateTask')" @click="emit('delegate', task.id)" />
             <v-divider class="opacity-10" />
             <v-list-item prepend-icon="mdi-delete-outline" :title="t('task.deleteTask')" class="text-error" @click="emit('delete', task.id)" />
           </v-list>
         </v-menu>
-        <button class="p-1.5 rounded-lg hover:bg-white/5 transition-colors" @click="emit('close')">
-          <v-icon icon="mdi-close" size="18" class="text-white/40" />
+        <button class="p-1.5 rounded-lg transition-colors" @click="emit('close')">
+          <v-icon icon="mdi-close" size="18" :style="{ color: 'var(--text-muted)' }" />
         </button>
       </div>
     </div>
@@ -147,7 +147,8 @@ const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
       <div class="px-5 py-4 section-border">
         <input
           v-model="editTitle"
-          class="w-full bg-transparent text-base font-bold text-white outline-none placeholder:text-white/20"
+          class="w-full bg-transparent text-base font-bold outline-none"
+          :style="{ color: 'var(--text)', '--placeholder-color': 'var(--text-muted)' }"
           :placeholder="t('task.title')"
         />
       </div>
@@ -265,7 +266,7 @@ const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
     </div>
 
     <!-- Sticky save bar (when changes exist) -->
-    <div v-if="hasChanges" class="px-5 py-3 flex-shrink-0 bg-[#0f0f1a] section-border-top">
+    <div v-if="hasChanges" class="px-5 py-3 flex-shrink-0 section-border-top" :style="{ background: 'var(--bg-card)' }">
       <div class="flex items-center justify-between">
         <p class="text-xs text-warning flex items-center gap-1.5">
           <v-icon icon="mdi-circle-medium" size="16" />

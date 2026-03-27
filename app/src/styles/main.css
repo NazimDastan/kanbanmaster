@@ -41,6 +41,145 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============================================
+   GLOBAL COMPONENT STRENGTHENING
+   ============================================ */
+
+/* Vuetify Buttons — more padding, bolder, visible borders */
+.v-btn {
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  min-height: 38px !important;
+  padding: 0 18px !important;
+  border: 1px solid var(--border) !important;
+  transition: all 0.15s ease !important;
+}
+.v-btn--size-small {
+  min-height: 32px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+}
+.v-btn--size-x-small {
+  min-height: 26px !important;
+  padding: 0 10px !important;
+}
+.v-btn--variant-flat {
+  border: none !important;
+}
+.v-btn--variant-tonal {
+  border: 1px solid transparent !important;
+}
+.v-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.v-btn--icon {
+  border: none !important;
+  min-height: auto !important;
+  padding: 0 !important;
+}
+
+/* Vuetify Cards — visible border, more padding */
+.v-card {
+  border: 1px solid var(--border) !important;
+  transition: border-color 0.15s ease !important;
+}
+.v-card:hover {
+  border-color: var(--border-hover) !important;
+}
+
+/* Vuetify Text Fields — taller, clearer borders */
+.v-field {
+  min-height: 44px !important;
+  border-radius: 10px !important;
+}
+.v-field__outline {
+  --v-field-border-opacity: 0.15 !important;
+}
+.v-field--focused .v-field__outline {
+  --v-field-border-opacity: 0.4 !important;
+}
+
+/* Vuetify Chips — more padding */
+.v-chip {
+  font-weight: 500 !important;
+  padding: 0 10px !important;
+  min-height: 26px !important;
+}
+
+/* Vuetify List Items — more padding, clearer */
+.v-list-item {
+  min-height: 40px !important;
+  padding: 4px 16px !important;
+  border-radius: 8px !important;
+  margin: 2px 4px !important;
+}
+
+/* Vuetify Tabs */
+.v-tab {
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* Vuetify Dialog */
+.v-dialog .v-card {
+  padding: 8px !important;
+}
+
+/* Vuetify Progress Linear */
+.v-progress-linear {
+  border-radius: 999px !important;
+}
+
+/* ============================================
+   GENERAL SPACING & TYPOGRAPHY
+   ============================================ */
+
+/* Section headings in pages */
+h1 { font-weight: 700; }
+h2 { font-weight: 600; }
+h3 { font-weight: 600; }
+
+/* Stat cards, info cards — ensure readable padding */
+.rounded-xl, .rounded-2xl {
+  border: 1px solid var(--border);
+}
+
+/* ============================================
+   CUSTOM INPUT STYLING
+   ============================================ */
+
+/* Native inputs and textareas used in components */
+input:not(.v-field__input),
+textarea:not(.v-field__input),
+select:not(.v-field__input) {
+  color: var(--text) !important;
+  caret-color: var(--color-primary);
+}
+input:not(.v-field__input)::placeholder,
+textarea:not(.v-field__input)::placeholder {
+  color: var(--text-muted) !important;
+}
+input:not(.v-field__input):focus,
+textarea:not(.v-field__input):focus {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Select dropdown */
+select {
+  color: var(--text) !important;
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+}
+select option {
+  background: var(--bg-card);
+  color: var(--text);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
