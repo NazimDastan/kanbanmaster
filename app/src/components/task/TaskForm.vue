@@ -29,7 +29,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <v-card class="pa-6" max-width="480">
+  <v-card class="pa-6" max-width="480" color="surface">
     <h3 class="text-lg font-bold mb-4">{{ t('task.newTask') }}</h3>
     <v-form v-model="form" @submit.prevent="handleSubmit">
       <v-text-field v-model="title" :label="t('task.title')" :rules="[required(t('task.title'))]" prepend-inner-icon="mdi-text" class="mb-2" />

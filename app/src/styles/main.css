@@ -351,9 +351,23 @@ html.light [class*="bg-white/"] { background-color: rgba(0, 0, 0, 0.03) !importa
 .light ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* Vuetify overrides for light */
-.light .v-list { background: #ffffff !important; }
-.light .v-card { background: #ffffff !important; }
-.light .v-navigation-drawer { background: #ffffff !important; }
+.light .v-list { background: #ffffff !important; color: #1e293b !important; }
+.light .v-card { background: #ffffff !important; color: #1e293b !important; }
+.light .v-navigation-drawer { background: #ffffff !important; color: #1e293b !important; }
+.light .v-dialog .v-card { background: #ffffff !important; color: #1e293b !important; }
+.light .v-overlay__content .v-card { background: #ffffff !important; color: #1e293b !important; }
+.light .v-overlay__content .v-list { background: #ffffff !important; color: #1e293b !important; }
+.light .v-list-item-title { color: #1e293b !important; }
+.light .v-list-item-subtitle { color: #64748b !important; }
+.light .v-field__input { color: #1e293b !important; }
+.light .v-label { color: #64748b !important; }
+.light .v-alert { color: #1e293b !important; }
+.light .v-btn { color: inherit; }
+.light .v-btn--variant-tonal { color: inherit !important; }
+.light .v-chip { color: inherit; }
+.light .v-tab { color: #64748b !important; }
+.light .v-tab--selected { color: #6366f1 !important; }
+.light .v-progress-linear__background { background: #e2e8f0 !important; }
 
 /* Theme-aware utility classes */
 .t-bg { background: var(--bg); }

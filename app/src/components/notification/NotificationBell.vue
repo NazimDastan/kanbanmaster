@@ -25,7 +25,7 @@ const typeColors: Record<string, string> = {
         <span v-if="count > 0" class="absolute top-1 right-1 w-4 h-4 rounded-full bg-error text-[9px] font-bold text-white flex items-center justify-center">{{ count }}</span>
       </button>
     </template>
-    <v-card min-width="340" max-height="440" color="#161625" class="rounded-xl border border-white/5">
+    <v-card min-width="340" max-height="440" color="surface" class="rounded-xl border border-white/5">
       <div class="flex items-center justify-between px-4 py-3 border-b border-white/5">
         <span class="text-xs font-semibold">{{ t('notifications.title') }}</span>
         <v-btn v-if="count > 0" variant="text" size="x-small" color="primary" @click="emit('markAllRead')">{{ t('notifications.markAllRead') }}</v-btn>

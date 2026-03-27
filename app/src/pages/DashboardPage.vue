@@ -216,7 +216,7 @@ onMounted(loadDashboard)
             </p>
             <p class="text-xs text-white/25 mt-1">{{ completedCount }} / {{ totalCount }} {{ t('dashboard.totalTasks').toLowerCase() }}</p>
           </div>
-          <v-progress-linear :model-value="totalCount > 0 ? (completedCount / totalCount) * 100 : 0" color="#10b981" height="6" rounded bg-color="#1e1e32" />
+          <v-progress-linear :model-value="totalCount > 0 ? (completedCount / totalCount) * 100 : 0" color="#10b981" height="6" rounded bg-color="surface" />
         </div>
       </div>
 
@@ -269,7 +269,7 @@ onMounted(loadDashboard)
               <span class="text-xs text-white/40">{{ t('dashboard.taskCount', { completed: completedCount, total: totalCount }) }}</span>
               <span class="text-xs font-semibold text-success">{{ totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0 }}%</span>
             </div>
-            <v-progress-linear :model-value="totalCount > 0 ? (completedCount / totalCount) * 100 : 0" color="#10b981" height="4" rounded bg-color="#1e1e32" />
+            <v-progress-linear :model-value="totalCount > 0 ? (completedCount / totalCount) * 100 : 0" color="#10b981" height="4" rounded bg-color="surface" />
           </div>
         </div>
       </div>

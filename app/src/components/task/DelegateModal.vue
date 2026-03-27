@@ -19,7 +19,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <v-card class="pa-6" max-width="480">
+  <v-card class="pa-6" max-width="480" color="surface">
     <h3 class="text-lg font-bold mb-1">{{ t('task.delegateTask') }}</h3>
     <p class="text-sm text-text-secondary mb-4">{{ taskTitle }}</p>
     <v-form v-model="form" @submit.prevent="handleSubmit">

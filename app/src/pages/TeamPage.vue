@@ -149,7 +149,7 @@ async function handleRoleChange(userId: string, role: string) {
                       <v-icon icon="mdi-dots-vertical" size="16" class="text-white/30" />
                     </button>
                   </template>
-                  <v-list density="compact" min-width="140" bg-color="#1e1e32" class="rounded-xl border border-white/5">
+                  <v-list density="compact" min-width="140" bg-color="surface" class="rounded-xl border border-white/5">
                     <v-list-item v-for="role in roleOptions" :key="role.value" :title="t('team.setRole', { role: role.title })" @click="handleRoleChange(member.userId, role.value)" />
                     <v-divider class="opacity-10" />
                     <v-list-item :title="t('common.remove')" class="text-error" @click="handleRemoveMember(member.userId)" />
@@ -167,7 +167,7 @@ async function handleRoleChange(userId: string, role: string) {
 
     <!-- Invite modal -->
     <v-dialog v-model="showInviteModal" max-width="400">
-      <v-card class="pa-5" color="#161625">
+      <v-card class="pa-5" color="surface">
         <h3 class="text-sm font-bold mb-3">{{ t('team.inviteMember') }}</h3>
         <v-alert v-if="inviteError" type="error" variant="tonal" class="mb-3 text-xs">{{ inviteError }}</v-alert>
         <v-text-field v-model="inviteEmail" :label="t('team.emailAddress')" type="email" prepend-inner-icon="mdi-email-outline" class="mb-2" />
@@ -181,7 +181,7 @@ async function handleRoleChange(userId: string, role: string) {
 
     <!-- Create team modal -->
     <v-dialog v-model="showCreateModal" max-width="400">
-      <v-card class="pa-5" color="#161625">
+      <v-card class="pa-5" color="surface">
         <h3 class="text-sm font-bold mb-3">{{ t('team.createTeam') }}</h3>
         <v-text-field v-model="newTeamName" :label="t('team.teamName')" prepend-inner-icon="mdi-account-group-outline" class="mb-3" />
         <div class="flex justify-end gap-2">

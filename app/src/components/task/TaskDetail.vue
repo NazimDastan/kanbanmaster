@@ -221,7 +221,7 @@ const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
           <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25">{{ t('task.subtasks') }}</p>
           <span class="text-[11px] text-white/30">{{ completedSubtasks }}/{{ totalSubtasks }}</span>
         </div>
-        <v-progress-linear :model-value="(completedSubtasks / totalSubtasks) * 100" color="primary" height="4" rounded bg-color="#1e1e32" class="mb-3" />
+        <v-progress-linear :model-value="(completedSubtasks / totalSubtasks) * 100" color="primary" height="4" rounded bg-color="surface" class="mb-3" />
         <div class="space-y-0.5">
           <div v-for="sub in task.subtasks" :key="sub.id" class="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-white/[0.02] transition-colors">
             <v-checkbox-btn :model-value="sub.isCompleted" density="compact" color="primary" />

@@ -254,7 +254,7 @@ async function handleAddColumn() {
     </div>
 
     <!-- Task drawer -->
-    <v-navigation-drawer v-model="showTaskDrawer" location="right" temporary width="440" color="#0f0f1a">
+    <v-navigation-drawer v-model="showTaskDrawer" location="right" temporary width="440" color="surface">
       <TaskDetail v-if="taskStore.selectedTask" :task="taskStore.selectedTask" :board-id="boardStore.currentBoard?.id ?? ''" @close="showTaskDrawer = false" @delete="handleDeleteTask" @delegate="handleDelegate" @updated="boardStore.fetchBoard(route.params.id as string)" />
     </v-navigation-drawer>
 
@@ -268,7 +268,7 @@ async function handleAddColumn() {
     </v-dialog>
 
     <v-dialog v-model="showAddColumnModal" max-width="360">
-      <v-card class="pa-5" color="#161625">
+      <v-card class="pa-5" color="surface">
         <h3 class="text-sm font-bold mb-3">{{ t('board.addColumn') }}</h3>
         <v-text-field v-model="newColumnName" :label="t('board.columnName')" prepend-inner-icon="mdi-view-column-outline" autofocus @keyup.enter="handleAddColumn" />
         <div class="flex justify-end gap-2 mt-3">

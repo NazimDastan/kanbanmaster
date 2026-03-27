@@ -106,7 +106,7 @@ function scoreColor(s: number) { return s >= 90 ? '#10b981' : s >= 75 ? '#6366f1
         <span class="text-xs text-white/60 w-8 text-center">{{ m.completed }}</span>
         <span class="text-xs text-success w-10 text-center">{{ m.onTime }}</span>
         <span class="text-xs text-error w-8 text-center">{{ m.overdue }}</span>
-        <v-progress-linear :model-value="m.score" :color="scoreColor(m.score)" height="5" rounded bg-color="#1e1e32" />
+        <v-progress-linear :model-value="m.score" :color="scoreColor(m.score)" height="5" rounded bg-color="surface" />
       </div>
     </div>
 
@@ -139,7 +139,7 @@ function scoreColor(s: number) { return s >= 90 ? '#10b981' : s >= 75 ? '#6366f1
 
     <!-- Request modal -->
     <v-dialog v-model="showRequestModal" max-width="420">
-      <v-card class="pa-5" color="#161625">
+      <v-card class="pa-5" color="surface">
         <h3 class="text-sm font-bold mb-3">{{ t('reports.requestReport') }}</h3>
         <v-text-field v-model="requestTargetUserId" :label="t('reports.targetUserId')" prepend-inner-icon="mdi-account-outline" class="mb-2" />
         <v-text-field v-model="requestTeamId" :label="t('reports.teamId')" prepend-inner-icon="mdi-account-group-outline" class="mb-2" />
@@ -152,7 +152,7 @@ function scoreColor(s: number) { return s >= 90 ? '#10b981' : s >= 75 ? '#6366f1
     </v-dialog>
 
     <v-dialog v-model="showRespondModal" max-width="420">
-      <v-card class="pa-5" color="#161625">
+      <v-card class="pa-5" color="surface">
         <h3 class="text-sm font-bold mb-2">{{ t('reports.respond') }}</h3>
         <p class="text-xs text-white/30 mb-3">{{ respondingReport?.message }}</p>
         <v-textarea v-model="responseText" :label="t('reports.yourResponse')" rows="4" auto-grow variant="outlined" rounded="lg" class="mb-3" />

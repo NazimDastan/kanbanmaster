@@ -24,11 +24,16 @@ const colorMap: Record<string, string> = {
         <div
           v-for="toast in toasts"
           :key="toast.id"
-          class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border border-white/10 shadow-lg backdrop-blur-md"
-          :style="{ backgroundColor: colorMap[toast.type] + '15', borderColor: colorMap[toast.type] + '30' }"
+          class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg backdrop-blur-md"
+          :style="{
+            backgroundColor: colorMap[toast.type] + '18',
+            borderColor: colorMap[toast.type] + '40',
+            border: '1px solid ' + colorMap[toast.type] + '40',
+            color: 'var(--text)',
+          }"
         >
           <v-icon :icon="iconMap[toast.type]" size="18" :style="{ color: colorMap[toast.type] }" />
-          <p class="text-sm font-medium text-white/90 flex-1">{{ toast.message }}</p>
+          <p class="text-sm font-medium flex-1" :style="{ color: 'var(--text)' }">{{ toast.message }}</p>
         </div>
       </TransitionGroup>
     </div>
