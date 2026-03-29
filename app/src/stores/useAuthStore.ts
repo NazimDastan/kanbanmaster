@@ -2,6 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from '@/types/user'
 import { authService } from '@/services/authService'
+import { useNotificationStore } from '@/stores/useNotificationStore'
+import { useBoardStore } from '@/stores/useBoardStore'
+import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -62,7 +65,9 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
-    window.location.href = '/login'
+    useNotificationStore().$reset()
+    useBoardStore().$reset()
+    router.push('/login')
   }
 
   return { user, loading, isAuthenticated, userName, login, register, fetchUser, updateProfile, updateAvatar, changePassword, logout }

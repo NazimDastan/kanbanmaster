@@ -5,8 +5,10 @@ import type { Comment } from '@/types/task'
 import { commentService } from '@/services/commentService'
 import { formatRelativeTime } from '@/utils/date'
 import { getInitials } from '@/utils/format'
+import { useConfirm } from '@/composables/useConfirm'
 
 const { t } = useI18n()
+const { confirm } = useConfirm()
 const props = defineProps<{ taskId: string }>()
 
 const comments = ref<Comment[]>([])
@@ -30,6 +32,8 @@ async function handleSubmit() {
 }
 
 async function handleDelete(commentId: string) {
+  const ok = await confirm({ title: t('task.deleteComment'), message: t('common.confirm') + '?', confirmText: t('common.delete'), danger: true })
+  if (!ok) return
   await commentService.delete(commentId)
   comments.value = comments.value.filter((c) => c.id !== commentId)
 }

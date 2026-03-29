@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"kanbanmaster/cmd/models"
@@ -45,9 +46,10 @@ func (s *TaskService) Create(creatorID string, input CreateTaskInput) (*models.T
 	var deadline *time.Time
 	if input.Deadline != nil {
 		t, err := time.Parse(time.RFC3339, *input.Deadline)
-		if err == nil {
-			deadline = &t
+		if err != nil {
+			return nil, fmt.Errorf("invalid deadline format: %w", err)
 		}
+		deadline = &t
 	}
 
 	var task models.Task
@@ -69,6 +71,7 @@ func (s *TaskService) Create(creatorID string, input CreateTaskInput) (*models.T
 
 	task.Subtasks = []models.Subtask{}
 	task.Labels = []models.Label{}
+	task.Assignees = []models.User{}
 	return &task, nil
 }
 
@@ -108,7 +111,36 @@ func (s *TaskService) Get(taskID string) (*models.Task, error) {
 		task.Subtasks = []models.Subtask{}
 	}
 
-	task.Labels = []models.Label{}
+	// Load labels
+	labelRows, err := s.db.Query(
+		`SELECT l.id, l.board_id, l.name, l.color
+		 FROM labels l
+		 JOIN task_labels tl ON tl.label_id = l.id
+		 WHERE tl.task_id = $1`,
+		taskID,
+	)
+	if err == nil {
+		defer labelRows.Close()
+		for labelRows.Next() {
+			var l models.Label
+			if err := labelRows.Scan(&l.ID, &l.BoardID, &l.Name, &l.Color); err == nil {
+				task.Labels = append(task.Labels, l)
+			}
+		}
+	}
+	if task.Labels == nil {
+		task.Labels = []models.Label{}
+	}
+
+	// Load assignees
+	assignees, err := s.GetAssignees(taskID)
+	if err == nil {
+		task.Assignees = assignees
+	}
+	if task.Assignees == nil {
+		task.Assignees = []models.User{}
+	}
+
 	return &task, nil
 }
 
@@ -143,9 +175,10 @@ func (s *TaskService) Update(taskID string, input UpdateTaskInput) (*models.Task
 	var deadline *time.Time
 	if input.Deadline != nil {
 		t, err := time.Parse(time.RFC3339, *input.Deadline)
-		if err == nil {
-			deadline = &t
+		if err != nil {
+			return nil, fmt.Errorf("invalid deadline format: %w", err)
 		}
+		deadline = &t
 	} else {
 		deadline = task.Deadline
 	}
@@ -224,6 +257,10 @@ func (s *TaskService) Assign(taskID string, assigneeID string) error {
 	if rows == 0 {
 		return ErrTaskNotFound
 	}
+	// Also add to task_assignees for multi-assignee consistency
+	if assigneeID != "" {
+		_ = s.AddAssignee(taskID, assigneeID)
+	}
 	return nil
 }
 
@@ -272,12 +309,103 @@ func (s *TaskService) ListByUser(userID, filter string) ([]models.Task, error) {
 		}
 		t.Subtasks = []models.Subtask{}
 		t.Labels = []models.Label{}
+		t.Assignees = []models.User{}
 		tasks = append(tasks, t)
 	}
 	if tasks == nil {
 		tasks = []models.Task{}
 	}
 	return tasks, nil
+}
+
+// Search returns tasks matching a query string by title or description for the authenticated user
+func (s *TaskService) Search(userID, query string) ([]models.Task, error) {
+	pattern := "%" + query + "%"
+	rows, err := s.db.Query(`
+		SELECT DISTINCT t.id, t.column_id, t.title, t.description, t.creator_id,
+		       t.assignee_id, t.priority, t.deadline, t.position,
+		       t.created_at, t.updated_at, t.completed_at
+		FROM tasks t
+		JOIN columns c ON c.id = t.column_id
+		JOIN boards b ON b.id = c.board_id
+		JOIN team_members tm ON tm.team_id = b.team_id
+		WHERE tm.user_id = $1
+		  AND (t.title ILIKE $2 OR t.description ILIKE $2)
+		ORDER BY t.updated_at DESC
+		LIMIT 50`,
+		userID, pattern,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []models.Task
+	for rows.Next() {
+		var t models.Task
+		if err := rows.Scan(
+			&t.ID, &t.ColumnID, &t.Title, &t.Description, &t.CreatorID,
+			&t.AssigneeID, &t.Priority, &t.Deadline, &t.Position,
+			&t.CreatedAt, &t.UpdatedAt, &t.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		t.Subtasks = []models.Subtask{}
+		t.Labels = []models.Label{}
+		t.Assignees = []models.User{}
+		tasks = append(tasks, t)
+	}
+	if tasks == nil {
+		tasks = []models.Task{}
+	}
+	return tasks, nil
+}
+
+// Multi-assignee operations
+
+func (s *TaskService) AddAssignee(taskID, userID string) error {
+	_, err := s.db.Exec(
+		`INSERT INTO task_assignees (task_id, user_id) VALUES ($1, $2)
+		 ON CONFLICT (task_id, user_id) DO NOTHING`,
+		taskID, userID,
+	)
+	return err
+}
+
+func (s *TaskService) RemoveAssignee(taskID, userID string) error {
+	_, err := s.db.Exec(
+		"DELETE FROM task_assignees WHERE task_id = $1 AND user_id = $2",
+		taskID, userID,
+	)
+	return err
+}
+
+func (s *TaskService) GetAssignees(taskID string) ([]models.User, error) {
+	rows, err := s.db.Query(
+		`SELECT u.id, u.email, u.name, u.avatar_url, u.created_at, u.updated_at
+		 FROM task_assignees ta
+		 JOIN users u ON u.id = ta.user_id
+		 WHERE ta.task_id = $1
+		 ORDER BY ta.assigned_at`,
+		taskID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.Name, &u.AvatarURL, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	if users == nil {
+		users = []models.User{}
+	}
+	return users, nil
 }
 
 // Subtask operations

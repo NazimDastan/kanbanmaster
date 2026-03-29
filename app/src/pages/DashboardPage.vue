@@ -11,11 +11,13 @@ import { getInitials } from '@/utils/format'
 import type { Task, Priority } from '@/types/task'
 import { exportTasksToCSV } from '@/utils/export'
 import { PRIORITY_CONFIG } from '@/types/task'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const { t } = useI18n()
 const authStore = useAuthStore()
 const boardStore = useBoardStore()
+const toast = useToast()
 
 const allTasks = ref<Task[]>([])
 const loading = ref(false)
@@ -53,7 +55,7 @@ async function loadDashboard() {
     allTasks.value = await taskService.list()
     await boardStore.fetchBoards()
   } catch {
-    // API not connected — empty state
+    toast.error(t('common.error'))
   } finally {
     loading.value = false
   }
@@ -66,6 +68,7 @@ async function openFilter(filter: TaskFilter) {
     filteredTasks.value = await taskService.list(filter || undefined)
   } catch {
     filteredTasks.value = []
+    toast.error(t('common.error'))
   }
 }
 
@@ -86,13 +89,13 @@ onMounted(loadDashboard)
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
         <h1 class="text-xl md:text-2xl font-bold">{{ t('dashboard.hello', { name: authStore.userName || 'User' }) }}</h1>
-        <p class="text-sm mt-0.5" :style="{ color: 'var(--text-secondary)' }">{{ t('dashboard.subtitle') }}</p>
+        <p class="text-sm mt-0.5 text-[var(--text-secondary)]">{{ t('dashboard.subtitle') }}</p>
       </div>
       <div class="flex flex-wrap gap-2">
         <v-btn prepend-icon="mdi-view-column-outline" variant="tonal" color="primary" size="small" to="/boards">{{ t('dashboard.goToBoards') }}</v-btn>
         <v-btn prepend-icon="mdi-account-group-outline" variant="tonal" color="secondary" size="small" to="/teams">{{ t('dashboard.manageTeams') }}</v-btn>
         <v-btn prepend-icon="mdi-chart-bar" variant="tonal" size="small" to="/reports">{{ t('dashboard.viewReports') }}</v-btn>
-        <v-btn v-if="allTasks.length > 0" prepend-icon="mdi-download-outline" variant="tonal" size="small" @click="exportTasksToCSV(allTasks)">Export CSV</v-btn>
+        <v-btn v-if="allTasks.length > 0" prepend-icon="mdi-download-outline" variant="tonal" size="small" @click="exportTasksToCSV(allTasks)">{{ t('reports.exportCSV') }}</v-btn>
       </div>
     </div>
 
@@ -127,7 +130,16 @@ onMounted(loadDashboard)
             <span class="text-sm text-white/50">{{ t('dashboard.step3') }}</span>
           </div>
         </div>
-        <p class="text-xs text-white/25 mt-6">{{ t('dashboard.sidebarHint') }}</p>
+        <v-btn
+          class="mt-6"
+          prepend-icon="mdi-plus-circle-outline"
+          variant="flat"
+          color="primary"
+          size="default"
+          to="/boards"
+        >
+          {{ t('dashboard.createFirstBoard') }}
+        </v-btn>
       </div>
 
       <!-- Stat cards — CLICKABLE -->

@@ -19,7 +19,7 @@ const colorMap: Record<string, string> = {
 
 <template>
   <Teleport to="body">
-    <div class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" style="max-width: 360px">
+    <div class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none max-w-[360px]">
       <TransitionGroup name="toast">
         <div
           v-for="toast in toasts"
@@ -33,7 +33,7 @@ const colorMap: Record<string, string> = {
           }"
         >
           <v-icon :icon="iconMap[toast.type]" size="18" :style="{ color: colorMap[toast.type] }" />
-          <p class="text-sm font-medium flex-1" :style="{ color: 'var(--text)' }">{{ toast.message }}</p>
+          <p class="text-sm font-medium flex-1 text-[var(--text)]">{{ toast.message }}</p>
         </div>
       </TransitionGroup>
     </div>

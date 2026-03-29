@@ -25,8 +25,13 @@ async function handleRegister() {
   try {
     await authStore.register(nameVal.value, emailVal.value, passwordVal.value)
     await router.push('/')
-  } catch {
-    error.value = t('auth.registerFailed')
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { status?: number } }
+    if (axiosErr.response?.status === 409) {
+      error.value = t('auth.emailInUse')
+    } else {
+      error.value = t('auth.registerFailed')
+    }
   }
 }
 </script>
@@ -34,14 +39,14 @@ async function handleRegister() {
 <template>
   <div class="min-h-screen flex animated-gradient">
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-[30%] right-[25%] w-[28rem] h-[28rem] bg-secondary/8 rounded-full blur-[130px]" style="animation: float 9s ease-in-out infinite" />
-      <div class="absolute bottom-[25%] left-[20%] w-[24rem] h-[24rem] bg-accent/6 rounded-full blur-[110px]" style="animation: float 11s ease-in-out infinite 3s" />
+      <div class="absolute top-[30%] right-[25%] w-[28rem] h-[28rem] bg-secondary/8 rounded-full blur-[130px] animate-[float_9s_ease-in-out_infinite]" />
+      <div class="absolute bottom-[25%] left-[20%] w-[24rem] h-[24rem] bg-accent/6 rounded-full blur-[110px] animate-[float_11s_ease-in-out_infinite_3s]" />
     </div>
 
     <!-- Branding -->
     <div class="hidden lg:flex flex-1 items-center justify-center relative">
       <div class="text-center px-10 max-w-md relative z-10">
-        <div class="w-20 h-20 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-secondary via-accent to-primary flex items-center justify-center glow-purple" style="animation: pulseRing 3s ease-in-out infinite">
+        <div class="w-20 h-20 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-secondary via-accent to-primary flex items-center justify-center glow-purple animate-[pulseRing_3s_ease-in-out_infinite]">
           <v-icon icon="mdi-account-group-outline" size="40" color="white" />
         </div>
         <h2 class="text-3xl font-bold mb-3 text-glow">{{ t('auth.brandJoinTitle') }}</h2>
@@ -50,7 +55,7 @@ async function handleRegister() {
     </div>
 
     <!-- Form -->
-    <div class="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
+    <div class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative z-10">
       <div class="w-full max-w-sm">
         <div class="flex items-center gap-2.5 mb-10">
           <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center glow-primary">
@@ -71,7 +76,7 @@ async function handleRegister() {
             <v-text-field v-model="passwordVal" :label="t('auth.password')" :type="showPassword ? 'text' : 'password'" prepend-inner-icon="mdi-lock-outline" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" :rules="[required(t('auth.password')), minLength(6)]" @click:append-inner="showPassword = !showPassword" />
             <v-text-field v-model="confirmPassword" :label="t('auth.confirmPassword')" :type="showPassword ? 'text' : 'password'" prepend-inner-icon="mdi-lock-check-outline" :rules="[required(t('auth.confirmPassword')), passwordMatch]" />
           </div>
-          <v-btn type="submit" size="large" block :loading="authStore.loading" :disabled="!form" class="mt-5 font-semibold text-white" style="background: linear-gradient(135deg, #a855f7, #06b6d4); text-transform: none; letter-spacing: 0;">
+          <v-btn type="submit" size="large" block :loading="authStore.loading" :disabled="!form" class="mt-5 font-semibold text-white bg-gradient-to-br from-[#a855f7] to-[#06b6d4] normal-case tracking-[0]">
             {{ t('auth.register') }}
           </v-btn>
         </v-form>

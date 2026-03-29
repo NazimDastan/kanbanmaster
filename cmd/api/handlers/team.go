@@ -10,10 +10,11 @@ import (
 
 type TeamHandler struct {
 	teamService *services.TeamService
+	authz       *services.AuthzService
 }
 
-func NewTeamHandler(teamService *services.TeamService) *TeamHandler {
-	return &TeamHandler{teamService: teamService}
+func NewTeamHandler(teamService *services.TeamService, authz *services.AuthzService) *TeamHandler {
+	return &TeamHandler{teamService: teamService, authz: authz}
 }
 
 func (h *TeamHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -26,6 +27,13 @@ func (h *TeamHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	if input.Name == "" || input.OrganizationID == "" {
 		writeError(w, "Name and organizationId are required", http.StatusBadRequest)
+		return
+	}
+
+	// Check user has access to the organization
+	ok, _ := h.authz.UserCanAccessOrg(userID, input.OrganizationID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
 		return
 	}
 
@@ -53,7 +61,14 @@ func (h *TeamHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TeamHandler) Get(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessTeam(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	team, err := h.teamService.GetWithMembers(id)
 	if err != nil {
@@ -70,6 +85,12 @@ func (h *TeamHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *TeamHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessTeam(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var body struct {
 		Name string `json:"name"`
@@ -95,6 +116,12 @@ func (h *TeamHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
 
+	ok, _ := h.authz.UserCanAccessTeam(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
+
 	err := h.teamService.Delete(id, userID)
 	if err != nil {
 		if errors.Is(err, services.ErrNotTeamLeader) {
@@ -110,6 +137,12 @@ func (h *TeamHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *TeamHandler) Invite(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	teamID := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessTeam(userID, teamID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var body struct {
 		Email string `json:"email"`
@@ -145,6 +178,12 @@ func (h *TeamHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	teamID := r.PathValue("id")
 	memberUserID := r.PathValue("userId")
 
+	ok, _ := h.authz.UserCanAccessTeam(userID, teamID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
+
 	err := h.teamService.RemoveMember(teamID, userID, memberUserID)
 	if err != nil {
 		if errors.Is(err, services.ErrNotTeamLeader) {
@@ -165,6 +204,12 @@ func (h *TeamHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	teamID := r.PathValue("id")
 	memberUserID := r.PathValue("userId")
+
+	ok, _ := h.authz.UserCanAccessTeam(userID, teamID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var body struct {
 		Role string `json:"role"`
@@ -189,4 +234,3 @@ func (h *TeamHandler) UpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
-

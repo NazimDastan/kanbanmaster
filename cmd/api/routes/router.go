@@ -8,14 +8,21 @@ import (
 	"kanbanmaster/cmd/api/handlers"
 	"kanbanmaster/cmd/api/middleware"
 	"kanbanmaster/cmd/config"
+	"kanbanmaster/cmd/models"
 	"kanbanmaster/cmd/services"
+	ws "kanbanmaster/cmd/websocket"
 )
 
 func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 
+	// WebSocket hub
+	hub := ws.NewHub()
+	go hub.Run()
+
 	// Services
 	authService := services.NewAuthService(db, cfg)
+	authzService := services.NewAuthzService(db)
 	orgService := services.NewOrgService(db)
 	teamService := services.NewTeamService(db)
 	boardService := services.NewBoardService(db)
@@ -28,23 +35,26 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	notifService := services.NewNotificationService(db)
 	perfService := services.NewPerformanceService(db)
 	attachmentService := services.NewAttachmentService(db)
+	notifService.SetOnNotify(func(userID string, n models.Notification) {
+		hub.SendToUser(userID, ws.Message{Type: "notification", Payload: n})
+	})
 	invitationService := services.NewInvitationService(db, notifService)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
-	orgHandler := handlers.NewOrgHandler(orgService)
-	teamHandler := handlers.NewTeamHandler(teamService)
-	boardHandler := handlers.NewBoardHandler(boardService)
-	columnHandler := handlers.NewColumnHandler(columnService)
-	taskHandler := handlers.NewTaskHandler(taskService)
-	delegationHandler := handlers.NewDelegationHandler(delegationService)
+	orgHandler := handlers.NewOrgHandler(orgService, authzService)
+	teamHandler := handlers.NewTeamHandler(teamService, authzService)
+	boardHandler := handlers.NewBoardHandler(boardService, authzService)
+	columnHandler := handlers.NewColumnHandler(columnService, authzService)
+	taskHandler := handlers.NewTaskHandler(taskService, notifService, authService, authzService)
+	delegationHandler := handlers.NewDelegationHandler(delegationService, authzService)
 	reportHandler := handlers.NewReportHandler(reportService)
-	labelHandler := handlers.NewLabelHandler(labelService)
-	commentHandler := handlers.NewCommentHandler(commentService)
+	labelHandler := handlers.NewLabelHandler(labelService, authzService)
+	commentHandler := handlers.NewCommentHandler(commentService, notifService, authService, taskService, authzService)
 	notifHandler := handlers.NewNotificationHandler(notifService)
-	dashHandler := handlers.NewDashboardHandler(perfService)
-	attachHandler := handlers.NewAttachmentHandler(attachmentService)
-	invHandler := handlers.NewInvitationHandler(invitationService)
+	dashHandler := handlers.NewDashboardHandler(perfService, authzService)
+	attachHandler := handlers.NewAttachmentHandler(attachmentService, authzService)
+	invHandler := handlers.NewInvitationHandler(invitationService, authzService)
 
 	// Health check
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
@@ -108,11 +118,14 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	// Tasks
 	protected.HandleFunc("GET /api/tasks", taskHandler.ListByUser)
 	protected.HandleFunc("POST /api/tasks", taskHandler.Create)
+	protected.HandleFunc("GET /api/tasks/search", taskHandler.Search)
 	protected.HandleFunc("GET /api/tasks/{id}", taskHandler.Get)
 	protected.HandleFunc("PUT /api/tasks/{id}", taskHandler.Update)
 	protected.HandleFunc("DELETE /api/tasks/{id}", taskHandler.Delete)
 	protected.HandleFunc("PATCH /api/tasks/{id}/move", taskHandler.Move)
 	protected.HandleFunc("PATCH /api/tasks/{id}/assign", taskHandler.Assign)
+	protected.HandleFunc("POST /api/tasks/{id}/assignees", taskHandler.AddAssignee)
+	protected.HandleFunc("DELETE /api/tasks/{id}/assignees/{userId}", taskHandler.RemoveAssignee)
 
 	// Subtasks
 	protected.HandleFunc("POST /api/tasks/{taskId}/subtasks", taskHandler.CreateSubtask)
@@ -159,6 +172,9 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	protected.HandleFunc("PATCH /api/notifications/{id}/read", notifHandler.MarkRead)
 	protected.HandleFunc("PATCH /api/notifications/read-all", notifHandler.MarkAllRead)
 
+	// WebSocket
+	protected.HandleFunc("GET /ws/notifications", hub.HandleWS)
+
 	// Mount protected routes with auth middleware
 	authMiddleware := middleware.Auth(authService)
 	mux.Handle("/api/auth/me", authMiddleware(protected))
@@ -185,6 +201,7 @@ func SetupRouter(cfg *config.Config, db *sql.DB) http.Handler {
 	mux.Handle("/api/dashboard/", authMiddleware(protected))
 	mux.Handle("/api/notifications", authMiddleware(protected))
 	mux.Handle("/api/notifications/", authMiddleware(protected))
+	mux.Handle("/ws/", authMiddleware(protected))
 
 	// Apply global middleware chain (outermost first)
 	handler := middleware.Chain(

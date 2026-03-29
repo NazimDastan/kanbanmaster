@@ -10,6 +10,7 @@ export interface Task {
   creatorId: string
   assigneeId: string | null
   assignee: User | null
+  assignees: User[]
   priority: Priority
   deadline: string | null
   position: number

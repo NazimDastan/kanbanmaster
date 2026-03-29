@@ -14,7 +14,7 @@ func NewColumnService(db *sql.DB) *ColumnService {
 	return &ColumnService{db: db}
 }
 
-func (s *ColumnService) Create(boardID, name string) (*models.Column, error) {
+func (s *ColumnService) Create(boardID, name, color string) (*models.Column, error) {
 	// Get next position
 	var maxPos sql.NullInt64
 	s.db.QueryRow("SELECT MAX(position) FROM columns WHERE board_id = $1", boardID).Scan(&maxPos)
@@ -25,10 +25,10 @@ func (s *ColumnService) Create(boardID, name string) (*models.Column, error) {
 
 	var col models.Column
 	err := s.db.QueryRow(
-		`INSERT INTO columns (board_id, name, position) VALUES ($1, $2, $3)
-		 RETURNING id, board_id, name, position, created_at`,
-		boardID, name, nextPos,
-	).Scan(&col.ID, &col.BoardID, &col.Name, &col.Position, &col.CreatedAt)
+		`INSERT INTO columns (board_id, name, position, color) VALUES ($1, $2, $3, $4)
+		 RETURNING id, board_id, name, position, color, created_at`,
+		boardID, name, nextPos, color,
+	).Scan(&col.ID, &col.BoardID, &col.Name, &col.Position, &col.Color, &col.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +40,9 @@ func (s *ColumnService) Update(columnID, name string) (*models.Column, error) {
 	var col models.Column
 	err := s.db.QueryRow(
 		`UPDATE columns SET name = $1 WHERE id = $2
-		 RETURNING id, board_id, name, position, created_at`,
+		 RETURNING id, board_id, name, position, color, created_at`,
 		name, columnID,
-	).Scan(&col.ID, &col.BoardID, &col.Name, &col.Position, &col.CreatedAt)
+	).Scan(&col.ID, &col.BoardID, &col.Name, &col.Position, &col.Color, &col.CreatedAt)
 	if err != nil {
 		return nil, ErrColumnNotFound
 	}

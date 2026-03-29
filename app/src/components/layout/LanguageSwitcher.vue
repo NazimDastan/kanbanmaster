@@ -21,10 +21,10 @@ function switchLanguage(code: string) {
     <template #activator="{ props }">
       <button v-bind="props" class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg transition-colors">
         <span class="text-sm">{{ languages.find(l => l.code === locale)?.flag }}</span>
-        <v-icon icon="mdi-chevron-down" size="12" :style="{ color: 'var(--text-muted)' }" />
+        <v-icon icon="mdi-chevron-down" size="12" class="text-[var(--text-muted)]" />
       </button>
     </template>
-    <v-list density="compact" min-width="140" class="rounded-xl" :style="{ background: 'var(--bg-card)', border: '1px solid var(--border)' }">
+    <v-list density="compact" min-width="140" class="rounded-xl bg-[var(--bg-card)] border border-[var(--border)]">
       <v-list-item
         v-for="lang in languages"
         :key="lang.code"
@@ -33,7 +33,7 @@ function switchLanguage(code: string) {
       >
         <div class="flex items-center gap-2">
           <span class="text-sm">{{ lang.flag }}</span>
-          <span class="text-xs" :style="{ color: 'var(--text)' }">{{ t(`languages.${lang.code}`) }}</span>
+          <span class="text-xs text-[var(--text)]">{{ t(`languages.${lang.code}`) }}</span>
         </div>
       </v-list-item>
     </v-list>

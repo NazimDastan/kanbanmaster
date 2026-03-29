@@ -18,6 +18,12 @@ import { useKeyboard } from '@/composables/useKeyboard'
 import draggable from 'vuedraggable'
 import { useConfirm } from '@/composables/useConfirm'
 import type { Task } from '@/types/task'
+import type { Column } from '@/types/board'
+
+const COLUMN_COLORS = [
+  '#f59e0b', '#ef4444', '#6366f1', '#10b981',
+  '#ec4899', '#8b5cf6', '#06b6d4', '#64748b',
+]
 
 const { t } = useI18n()
 const toast = useToast()
@@ -31,12 +37,16 @@ const showTaskFormModal = ref(false)
 const activeColumnId = ref('')
 const showAddColumnModal = ref(false)
 const showDelegateModal = ref(false)
+const showMoveTasksModal = ref(false)
 const newColumnName = ref('')
+const newColumnColor = ref('')
 const taskFormLoading = ref(false)
 const delegateLoading = ref(false)
 const searchQuery = ref('')
 const filterPriority = ref('')
 const viewMode = ref<'kanban' | 'list' | 'calendar'>('kanban')
+const deleteTargetColumnId = ref('')
+const moveTargetColumnId = ref('')
 
 // All tasks flat list (for list/calendar views)
 const allTasks = computed(() => {
@@ -63,6 +73,17 @@ const filteredColumns = computed(() => {
   }))
 })
 
+// Column being deleted (for the move tasks modal)
+const deleteTargetColumn = computed((): Column | undefined => {
+  return boardStore.currentBoard?.columns.find((c) => c.id === deleteTargetColumnId.value)
+})
+
+// Available columns to move tasks to (excludes the column being deleted)
+const moveTargetColumns = computed((): Column[] => {
+  if (!boardStore.currentBoard?.columns) return []
+  return boardStore.currentBoard.columns.filter((c) => c.id !== deleteTargetColumnId.value)
+})
+
 // Keyboard shortcuts
 useKeyboard([
   { key: 'n', handler: () => { activeColumnId.value = boardStore.currentBoard?.columns?.[0]?.id ?? ''; showTaskFormModal.value = true } },
@@ -76,7 +97,10 @@ useKeyboard([
 async function loadBoard() {
   await boardStore.fetchBoard(route.params.id as string)
 }
-onMounted(loadBoard)
+onMounted(() => {
+  if (window.innerWidth < 768) viewMode.value = 'list'
+  loadBoard()
+})
 watch(() => route.params.id, loadBoard)
 
 function handleTaskClick(task: Task) {
@@ -95,7 +119,7 @@ async function handleQuickAdd(data: { columnId: string; title: string }) {
     toast.success(t('task.createTask') + ' ✓')
     await boardStore.fetchBoard(route.params.id as string)
   } catch {
-    toast.error('Failed')
+    toast.error(t('common.error'))
   }
 }
 
@@ -103,7 +127,7 @@ async function handleTaskMoved(event: { taskId: string; toColumnId: string; newI
   try {
     await taskStore.moveTask(event.taskId, event.toColumnId, event.newIndex)
   } catch {
-    // Revert — refetch board
+    toast.error(t('common.error'))
     await boardStore.fetchBoard(route.params.id as string)
   }
 }
@@ -153,17 +177,73 @@ async function handleColumnReorder() {
   try {
     await columnService.reorder(boardStore.currentBoard.id, items)
   } catch {
+    toast.error(t('common.error'))
     await boardStore.fetchBoard(boardStore.currentBoard.id)
   }
 }
 
 async function handleAddColumn() {
   if (!newColumnName.value || !boardStore.currentBoard) return
-  await columnService.create(boardStore.currentBoard.id, newColumnName.value)
+  await columnService.create(boardStore.currentBoard.id, newColumnName.value, newColumnColor.value)
   toast.success(t('board.addColumn') + ' ✓')
   showAddColumnModal.value = false
   newColumnName.value = ''
+  newColumnColor.value = ''
   await boardStore.fetchBoard(boardStore.currentBoard.id)
+}
+
+function handleDeleteColumn(columnId: string) {
+  const columns = boardStore.currentBoard?.columns
+  if (!columns) return
+
+  const colIndex = columns.findIndex((c) => c.id === columnId)
+  if (colIndex < 3) {
+    toast.error(t('board.cannotDeleteDefault'))
+    return
+  }
+
+  const column = columns[colIndex]
+  if (column.tasks.length > 0) {
+    // Show warning modal to move tasks first
+    deleteTargetColumnId.value = columnId
+    moveTargetColumnId.value = columns[0]?.id ?? ''
+    showMoveTasksModal.value = true
+    return
+  }
+
+  // Column is empty — confirm and delete
+  deleteColumnDirectly(columnId)
+}
+
+async function deleteColumnDirectly(columnId: string) {
+  const ok = await confirm({
+    title: t('board.deleteColumn'),
+    message: t('common.confirm') + '?',
+    confirmText: t('common.delete'),
+    danger: true,
+  })
+  if (!ok) return
+  await columnService.delete(columnId)
+  toast.success(t('board.deleteColumn') + ' ✓')
+  await boardStore.fetchBoard(route.params.id as string)
+}
+
+async function handleMoveAndDelete() {
+  if (!deleteTargetColumn.value || !moveTargetColumnId.value) return
+
+  // Move all tasks to the target column
+  const tasks = deleteTargetColumn.value.tasks
+  for (const task of tasks) {
+    await taskStore.moveTask(task.id, moveTargetColumnId.value, 0)
+  }
+
+  // Now delete the empty column
+  await columnService.delete(deleteTargetColumnId.value)
+  toast.success(t('board.deleteColumn') + ' ✓')
+  showMoveTasksModal.value = false
+  deleteTargetColumnId.value = ''
+  moveTargetColumnId.value = ''
+  await boardStore.fetchBoard(route.params.id as string)
 }
 </script>
 
@@ -208,7 +288,7 @@ async function handleAddColumn() {
           </button>
         </div>
 
-        <v-btn color="primary" prepend-icon="mdi-plus" size="small" style="text-transform: none" @click="activeColumnId = boardStore.currentBoard?.columns?.[0]?.id ?? ''; showTaskFormModal = true">
+        <v-btn color="primary" prepend-icon="mdi-plus" size="small" class="normal-case" :disabled="!boardStore.currentBoard?.columns?.length" @click="activeColumnId = boardStore.currentBoard?.columns?.[0]?.id ?? ''; showTaskFormModal = true">
           {{ t('board.newTask') }}
         </v-btn>
       </div>
@@ -235,9 +315,18 @@ async function handleAddColumn() {
         class="flex gap-3"
         @end="handleColumnReorder"
       >
-        <template #item="{ element: col }">
+        <template #item="{ element: col, index }">
           <div class="column-drag-handle cursor-grab active:cursor-grabbing">
-            <BoardColumn :column="col" @task-click="handleTaskClick" @add-task="handleAddTask" @quick-add="handleQuickAdd" @task-moved="handleTaskMoved" />
+            <BoardColumn
+              :column="col"
+              :column-index="index"
+              :can-delete="index >= 3"
+              @task-click="handleTaskClick"
+              @add-task="handleAddTask"
+              @quick-add="handleQuickAdd"
+              @task-moved="handleTaskMoved"
+              @delete-column="handleDeleteColumn"
+            />
           </div>
         </template>
       </draggable>
@@ -272,13 +361,55 @@ async function handleAddColumn() {
       <TaskForm :column-id="activeColumnId" :loading="taskFormLoading" @submit="handleTaskSubmit" @cancel="showTaskFormModal = false" />
     </v-dialog>
 
+    <!-- Add Column Modal (with color picker) -->
     <v-dialog v-model="showAddColumnModal" max-width="360">
       <v-card class="pa-5" color="surface">
         <h3 class="text-sm font-bold mb-3">{{ t('board.addColumn') }}</h3>
         <v-text-field v-model="newColumnName" :label="t('board.columnName')" prepend-inner-icon="mdi-view-column-outline" autofocus @keyup.enter="handleAddColumn" />
+        <div class="mt-1 mb-3">
+          <p class="text-xs text-white/50 mb-2">{{ t('board.columnColor') }}</p>
+          <div class="flex gap-2 flex-wrap">
+            <button
+              v-for="color in COLUMN_COLORS"
+              :key="color"
+              class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
+              :class="newColumnColor === color ? 'border-white scale-110' : 'border-transparent'"
+              :style="{ backgroundColor: color }"
+              @click="newColumnColor = newColumnColor === color ? '' : color"
+            />
+          </div>
+        </div>
         <div class="flex justify-end gap-2 mt-3">
           <v-btn variant="text" size="small" @click="showAddColumnModal = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="primary" size="small" :disabled="!newColumnName" style="text-transform: none" @click="handleAddColumn">{{ t('common.add') }}</v-btn>
+          <v-btn color="primary" size="small" :disabled="!newColumnName" class="normal-case" @click="handleAddColumn">{{ t('common.add') }}</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Move Tasks Warning Modal -->
+    <v-dialog v-model="showMoveTasksModal" max-width="420">
+      <v-card class="pa-5" color="surface">
+        <div class="flex items-center gap-2 mb-3">
+          <v-icon icon="mdi-alert-outline" color="warning" size="20" />
+          <h3 class="text-sm font-bold">{{ t('board.deleteColumn') }}</h3>
+        </div>
+        <p class="text-xs text-white/60 mb-4">{{ t('board.moveTasksFirst') }}</p>
+        <div class="mb-4">
+          <label class="text-xs text-white/50 mb-1 block">{{ t('board.moveTo') }}</label>
+          <select
+            v-model="moveTargetColumnId"
+            class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white outline-none focus:border-primary/30 transition-colors"
+          >
+            <option v-for="col in moveTargetColumns" :key="col.id" :value="col.id">
+              {{ col.name }} ({{ col.tasks.length }})
+            </option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2">
+          <v-btn variant="text" size="small" @click="showMoveTasksModal = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" size="small" class="normal-case" :disabled="!moveTargetColumnId" @click="handleMoveAndDelete">
+            {{ t('board.deleteColumn') }}
+          </v-btn>
         </div>
       </v-card>
     </v-dialog>

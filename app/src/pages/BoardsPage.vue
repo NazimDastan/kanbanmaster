@@ -110,26 +110,25 @@ async function handleDelete(boardId: string) {
       <button
         v-for="board in boardStore.boards"
         :key="board.id"
-        class="flex items-center gap-4 p-4 rounded-xl border text-left transition-all group"
-        :style="{ background: 'var(--bg-card)', borderColor: 'var(--border)' }"
+        class="flex items-center gap-4 p-4 rounded-xl border text-left transition-all group bg-[var(--bg-card)] border-[var(--border)]"
         @click="router.push(`/boards/${board.id}`)"
       >
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0">
           <v-icon icon="mdi-view-column-outline" size="24" class="text-primary-light" />
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-semibold truncate" :style="{ color: 'var(--text)' }">{{ board.name }}</p>
+          <p class="text-sm font-semibold truncate text-[var(--text)]">{{ board.name }}</p>
           <div class="flex items-center gap-1.5 mt-0.5">
-            <v-icon :icon="teamStore.teams.find(t => t.id === board.teamId)?.name === 'Personal' ? 'mdi-account-outline' : 'mdi-account-group'" size="12" :style="{ color: 'var(--text-muted)' }" />
-            <span class="text-[11px]" :style="{ color: 'var(--text-muted)' }">{{ teamStore.teams.find(t => t.id === board.teamId)?.name ?? 'Personal' }}</span>
-            <span class="text-[10px]" :style="{ color: 'var(--text-faint)' }">· {{ board.createdAt.slice(0, 10) }}</span>
+            <v-icon :icon="teamStore.teams.find(t => t.id === board.teamId)?.name === 'Personal' ? 'mdi-account-outline' : 'mdi-account-group'" size="12" class="text-[var(--text-muted)]" />
+            <span class="text-[11px] text-[var(--text-muted)]">{{ teamStore.teams.find(t => t.id === board.teamId)?.name ?? 'Personal' }}</span>
+            <span class="text-[10px] text-[var(--text-faint)]">· {{ board.createdAt.slice(0, 10) }}</span>
           </div>
         </div>
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button class="p-1.5 rounded-lg hover:bg-error/10 transition-colors" @click.stop="handleDelete(board.id)">
             <v-icon icon="mdi-delete-outline" size="16" class="text-error/50" />
           </button>
-          <v-icon icon="mdi-chevron-right" size="18" :style="{ color: 'var(--text-faint)' }" />
+          <v-icon icon="mdi-chevron-right" size="18" class="text-[var(--text-faint)]" />
         </div>
       </button>
     </div>
@@ -147,7 +146,7 @@ async function handleDelete(boardId: string) {
         />
         <!-- Workspace selector -->
         <div class="mb-3">
-          <p class="text-[10px] font-semibold uppercase tracking-widest mb-2" :style="{ color: 'var(--text-muted)' }">{{ t('team.teams') }}</p>
+          <p class="text-[10px] font-semibold uppercase tracking-widest mb-2 text-[var(--text-muted)]">{{ t('team.teams') }}</p>
           <div class="flex flex-wrap gap-2">
             <!-- Personal option (default) -->
             <button

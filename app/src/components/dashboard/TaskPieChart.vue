@@ -51,12 +51,12 @@ const chartOptions = computed(() => {
 </script>
 
 <template>
-  <div class="relative" style="height: 180px">
+  <div class="relative h-[180px]">
     <Doughnut :data="chartData" :options="chartOptions" />
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div class="text-center">
-        <p class="text-2xl font-bold" :style="{ color: 'var(--text)' }">{{ completed + inProgress + overdue }}</p>
-        <p class="text-[10px]" :style="{ color: 'var(--text-muted)' }">Total</p>
+        <p class="text-2xl font-bold text-[var(--text)]">{{ completed + inProgress + overdue }}</p>
+        <p class="text-[10px] text-[var(--text-muted)]">Total</p>
       </div>
     </div>
   </div>

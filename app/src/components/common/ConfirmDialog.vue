@@ -19,8 +19,8 @@ const { isOpen, title, message, confirmText, cancelText, isDanger, handleConfirm
           />
         </div>
         <div>
-          <h3 class="text-sm font-bold" :style="{ color: 'var(--text)' }">{{ title }}</h3>
-          <p class="text-xs mt-1" :style="{ color: 'var(--text-secondary)' }">{{ message }}</p>
+          <h3 class="text-sm font-bold text-[var(--text)]">{{ title }}</h3>
+          <p class="text-xs mt-1 text-[var(--text-secondary)]">{{ message }}</p>
         </div>
       </div>
       <div class="flex justify-end gap-2">

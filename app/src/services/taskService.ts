@@ -62,4 +62,17 @@ export const taskService = {
     const response = await api.post<Comment>(`/tasks/${taskId}/comments`, { content })
     return response.data
   },
+
+  async addAssignee(taskId: string, userId: string): Promise<void> {
+    await api.post(`/tasks/${taskId}/assignees`, { userId })
+  },
+
+  async removeAssignee(taskId: string, userId: string): Promise<void> {
+    await api.delete(`/tasks/${taskId}/assignees/${userId}`)
+  },
+
+  async search(query: string): Promise<Task[]> {
+    const { data } = await api.get<Task[]>(`/tasks/search?q=${encodeURIComponent(query)}`)
+    return data
+  },
 }

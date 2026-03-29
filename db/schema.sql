@@ -53,6 +53,7 @@ CREATE TABLE columns (
     board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     position INTEGER NOT NULL DEFAULT 0,
+    color VARCHAR(7) NOT NULL DEFAULT '',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -140,6 +141,15 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Task Assignees (multi-assignee support)
+CREATE TABLE task_assignees (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(task_id, user_id)
+);
+
 -- Task Activity Log
 CREATE TABLE task_activity_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -163,3 +173,5 @@ CREATE INDEX idx_comments_task ON comments(task_id);
 CREATE INDEX idx_notifications_user ON notifications(user_id);
 CREATE INDEX idx_notifications_unread ON notifications(user_id, is_read) WHERE NOT is_read;
 CREATE INDEX idx_activity_log_task ON task_activity_log(task_id);
+CREATE INDEX idx_task_assignees_task ON task_assignees(task_id);
+CREATE INDEX idx_task_assignees_user ON task_assignees(user_id);

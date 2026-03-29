@@ -21,6 +21,8 @@ export default {
     none: 'Hiçbiri',
     clickToView: 'Görüntülemek için tıkla',
     vsLastPeriod: 'önceki döneme göre',
+    noResults: 'Sonuç bulunamadı',
+    error: 'Bir hata oluştu',
   },
 
   auth: {
@@ -42,6 +44,7 @@ export default {
     invalidCredentials: 'Geçersiz e-posta veya şifre',
     loginFailed: 'Giriş başarısız. Tekrar deneyin.',
     registerFailed: 'Kayıt başarısız. Tekrar deneyin.',
+    emailInUse: 'Bu e-posta adresi zaten kullanımda',
     brandTitle: 'Organize Et. Takip Et. Teslim Et.',
     brandDescription: 'Güçlü Kanban tahtaları, gerçek zamanlı iş birliği ve performans analiziyle takımınızın görevlerini yönetin.',
     brandJoinTitle: 'Takımına Katıl',
@@ -70,6 +73,7 @@ export default {
     thisWeek: 'Bu Hafta',
     myBoards: 'Tahtalarım',
     openBoard: 'Tahtayı aç',
+    assignedToMe: 'Bana Atanan',
     noBoardsYet: 'Henüz tahta yok',
     createBoardHint: 'Takımlar sayfasından tahta oluşturun',
     welcomeTitle: 'KanbanMaster\'a Hoş Geldiniz!',
@@ -77,7 +81,7 @@ export default {
     step1: 'Tahta oluştur',
     step2: 'Görev ekle',
     step3: 'İlerlemeyi takip et',
-    sidebarHint: 'İlk tahtanızı oluşturmak için soldaki menüde "Tahtalar" altındaki + butonunu kullanın.',
+    createFirstBoard: 'İlk Tahtanızı Oluşturun',
     allTasks: 'Tüm Görevler',
     completedTasks: 'Tamamlanan Görevler',
     inProgressTasks: 'Devam Edenler',
@@ -95,6 +99,11 @@ export default {
     noColumnsDescription: 'Görevleri düzenlemeye başlamak için ilk sütunu ekleyin.',
     addTask: 'Görev ekle',
     searchTasks: 'Görev ara...',
+    deleteColumn: 'Kolonu Sil',
+    cannotDeleteDefault: 'Varsayılan kolonlar silinemez',
+    moveTasksFirst: 'Bu kolonda görevler var. Önce başka bir kolona taşıyın.',
+    moveTo: 'Görevleri taşı',
+    columnColor: 'Kolon Rengi',
   },
 
   task: {
@@ -104,6 +113,11 @@ export default {
     deadline: 'Son Tarih (isteğe bağlı)',
     assignee: 'Atanan Kişi',
     unassigned: 'Atanmamış',
+    assignTask: 'Bir üyeye ata',
+    reassign: 'Yeniden Ata',
+    singleAssigneeNote: 'Aynı anda yalnızca bir kişi atanabilir',
+    searchMembers: 'Üye ara...',
+    assignedBy: '{name} tarafından atandı',
     noDescription: 'Açıklama eklenmemiş.',
     newTask: 'Yeni Görev',
     createTask: 'Görev Oluştur',
@@ -118,6 +132,9 @@ export default {
     activity: 'Aktivite',
     noActivity: 'Henüz aktivite yok',
     noComments: 'Henüz yorum yok',
+    unsavedChanges: 'Kaydedilmemiş değişiklikler var. Vazgeçmek istiyor musunuz?',
+    discardChanges: 'Vazgeç',
+    deleteComment: 'Yorumu Sil',
     writeComment: 'Yorum yazın...',
     created: 'Oluşturulma',
     updated: 'Güncellenme',
@@ -138,6 +155,8 @@ export default {
     newTeam: 'Yeni Takım',
     createTeam: 'Takım Oluştur',
     teamName: 'Takım Adı',
+    addBoard: 'Tahta Ekle',
+    boardName: 'Tahta Adı',
     noTeamsYet: 'Henüz takım yok',
     noTeamsDescription: 'İş birliğine başlamak için ilk takımınızı oluşturun.',
     selectTeam: 'Bir takım seçin',
@@ -184,6 +203,7 @@ export default {
     reportFrom: '{name} tarafından rapor',
     noMessage: 'Mesaj yok',
     unknown: 'Bilinmiyor',
+    exportCSV: 'CSV İndir',
   },
 
   profile: {
@@ -196,6 +216,16 @@ export default {
     newPassword: 'Yeni Şifre',
     confirmNewPassword: 'Yeni Şifre Tekrar',
     updatePassword: 'Şifreyi Güncelle',
+    language: 'Dil',
+    member: 'Üye',
+    dangerZone: 'Tehlikeli Alan',
+    deleteWarning: 'Hesabınızı sildiğinizde geri dönüşü yoktur.',
+    deleteAccount: 'Hesabı Sil',
+    themeColor: 'Tema Rengi',
+    purple: 'Mor',
+    blue: 'Mavi',
+    green: 'Yeşil',
+    orange: 'Turuncu',
   },
 
   notifications: {
@@ -215,6 +245,15 @@ export default {
     title: 'Sayfa Bulunamadı',
     description: 'Aradığınız sayfa mevcut değil.',
     goHome: 'Ana Sayfaya Dön',
+  },
+
+  errors: {
+    serverError: 'Sunucu Hatası',
+    serverErrorDesc: 'Bir şeyler ters gitti. Lütfen daha sonra tekrar deneyin.',
+    tryAgain: 'Tekrar Dene',
+    forbidden: 'Erişim Engellendi',
+    forbiddenDesc: 'Bu sayfaya erişim izniniz bulunmuyor.',
+    goBack: 'Geri Dön',
   },
 
   filter: {
@@ -244,11 +283,13 @@ export default {
     boards: 'Tahtalar',
     createFirstBoard: 'İlk tahtayı oluştur',
     noBoardsYet: 'Henüz tahta yok',
+    recentBoards: 'Son Tahtalar',
   },
 
   navbar: {
     profile: 'Profil',
     logout: 'Çıkış Yap',
+    logoutConfirm: 'Çıkış yapmak istediğinize emin misiniz?',
   },
 
   validation: {

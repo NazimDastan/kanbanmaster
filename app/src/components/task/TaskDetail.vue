@@ -2,53 +2,52 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Task, Priority } from '@/types/task'
+import type { User } from '@/types/user'
 import { PRIORITY_CONFIG } from '@/types/task'
-import { formatDate, formatDeadline } from '@/utils/date'
+import { formatDeadline } from '@/utils/date'
 import { getInitials } from '@/utils/format'
 import { taskService } from '@/services/taskService'
 import { delegationService, type ActivityLog } from '@/services/reportService'
 import { useToast } from '@/composables/useToast'
-import ActivityTimeline from './ActivityTimeline.vue'
+import { useConfirm } from '@/composables/useConfirm'
+import { useBoardStore } from '@/stores/useBoardStore'
+import MemberPicker from './MemberPicker.vue'
 import CommentSection from './CommentSection.vue'
 import AttachmentSection from './AttachmentSection.vue'
 import LabelManager from './LabelManager.vue'
+import SubtaskList from './SubtaskList.vue'
+import ActivityTimeline from './ActivityTimeline.vue'
 
 const { t } = useI18n()
 const toast = useToast()
+const { confirm } = useConfirm()
+const boardStore = useBoardStore()
 const props = defineProps<{ task: Task; boardId: string }>()
 const emit = defineEmits<{ close: []; delete: [id: string]; delegate: [taskId: string]; updated: [] }>()
 
-// Editable fields
 const editTitle = ref(props.task.title)
 const editDescription = ref(props.task.description ?? '')
 const editPriority = ref<Priority>(props.task.priority)
 const editDeadline = ref(props.task.deadline?.slice(0, 10) ?? '')
-const editAssigneeId = ref('')
-const showAssigneeInput = ref(false)
 const saving = ref(false)
 const hasChanges = ref(false)
-
 const activities = ref<ActivityLog[]>([])
+const activeTab = ref<'comments' | 'attachments' | 'activity'>('comments')
+const showAddAssignee = ref(false)
 
-const priorityOptions = [
-  { value: 'urgent', title: t('task.priorities.urgent'), color: '#dc2626' },
-  { value: 'high', title: t('task.priorities.high'), color: '#06b6d4' },
-  { value: 'medium', title: t('task.priorities.medium'), color: '#6366f1' },
-  { value: 'low', title: t('task.priorities.low'), color: '#9E9E9E' },
+const teamId = computed(() => boardStore.currentBoard?.teamId ?? '')
+const priorityConfig = computed(() => PRIORITY_CONFIG[editPriority.value])
+const deadlineInfo = computed(() => props.task.deadline ? formatDeadline(props.task.deadline) : null)
+const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
+const assignees = computed<User[]>(() => props.task.assignees ?? [])
+
+const priorities: { value: Priority; color: string; icon: string }[] = [
+  { value: 'urgent', color: '#dc2626', icon: 'mdi-alert-circle' },
+  { value: 'high', color: '#06b6d4', icon: 'mdi-arrow-up-bold' },
+  { value: 'medium', color: '#6366f1', icon: 'mdi-minus' },
+  { value: 'low', color: '#64748b', icon: 'mdi-arrow-down-bold' },
 ]
 
-// Priority-based theming
-const priorityTheme = computed(() => {
-  const themes: Record<Priority, { border: string; borderSoft: string; glow: string; bg: string }> = {
-    urgent: { border: 'rgba(220, 38, 38, 0.5)', borderSoft: 'rgba(220, 38, 38, 0.18)', glow: '0 0 24px rgba(220, 38, 38, 0.2)', bg: 'rgba(220, 38, 38, 0.04)' },
-    high: { border: 'rgba(6, 182, 212, 0.4)', borderSoft: 'rgba(6, 182, 212, 0.15)', glow: '0 0 18px rgba(6, 182, 212, 0.12)', bg: 'rgba(6, 182, 212, 0.03)' },
-    medium: { border: 'rgba(99, 102, 241, 0.2)', borderSoft: 'rgba(99, 102, 241, 0.08)', glow: 'none', bg: 'transparent' },
-    low: { border: 'rgba(255, 255, 255, 0.04)', borderSoft: 'rgba(255, 255, 255, 0.02)', glow: 'none', bg: 'transparent' },
-  }
-  return themes[editPriority.value]
-})
-
-// Track changes
 watch([editTitle, editDescription, editPriority, editDeadline], () => {
   hasChanges.value =
     editTitle.value !== props.task.title ||
@@ -77,274 +76,226 @@ async function handleSave() {
     hasChanges.value = false
     emit('updated')
   } catch {
-    toast.error('Failed to save')
+    toast.error(t('common.error'))
   } finally {
     saving.value = false
   }
 }
 
-async function handleAssigneeChange() {
-  if (!editAssigneeId.value.trim()) return
+async function handleClose() {
+  if (hasChanges.value) {
+    const ok = await confirm({
+      title: t('common.save'),
+      message: t('task.unsavedChanges'),
+      confirmText: t('task.discardChanges'),
+      danger: true,
+    })
+    if (!ok) return
+  }
+  emit('close')
+}
+
+async function handleAssign(userId: string, userName: string) {
   try {
-    await taskService.assign(props.task.id, editAssigneeId.value)
-    toast.success(t('task.assignee') + ' ✓')
-    showAssigneeInput.value = false
+    await taskService.assign(props.task.id, userId)
+    toast.success(`${userName} ✓`)
+    showAddAssignee.value = false
     emit('updated')
   } catch {
-    toast.error('Failed')
+    toast.error(t('common.error'))
   }
 }
 
-const rootStyle = computed(() => ({
-  'box-shadow': priorityTheme.value.glow,
-  '--p-border': priorityTheme.value.border,
-  '--p-border-soft': priorityTheme.value.borderSoft,
-  '--p-bg': priorityTheme.value.bg,
-  '--p-color': PRIORITY_CONFIG[editPriority.value].color,
-}))
+async function handleAddAssignee(userId: string, userName: string) {
+  try {
+    await taskService.addAssignee(props.task.id, userId)
+    toast.success(`${userName} ✓`)
+    showAddAssignee.value = false
+    emit('updated')
+  } catch {
+    toast.error(t('common.error'))
+  }
+}
 
-const priorityConfig = computed(() => PRIORITY_CONFIG[editPriority.value])
-const deadlineInfo = computed(() => props.task.deadline ? formatDeadline(props.task.deadline) : null)
-const completedSubtasks = computed(() => props.task.subtasks?.filter((s) => s.isCompleted).length ?? 0)
-const totalSubtasks = computed(() => props.task.subtasks?.length ?? 0)
+async function handleRemoveAssignee(userId: string) {
+  try {
+    await taskService.removeAssignee(props.task.id, userId)
+    emit('updated')
+  } catch {
+    toast.error(t('common.error'))
+  }
+}
 </script>
 
 <template>
-  <div
-    class="h-full flex flex-col transition-all duration-300"
-    :style="[rootStyle, { background: 'var(--bg-card)' }]"
-  >
-    <!-- Priority top bar indicator -->
-    <div class="h-[3px] flex-shrink-0 transition-all duration-300" :style="{ background: `linear-gradient(90deg, ${priorityConfig.color}, transparent)` }" />
+  <div class="h-full flex flex-col bg-[var(--bg-card)]">
+    <!-- Priority stripe -->
+    <div class="h-1 flex-shrink-0" :style="{ background: `linear-gradient(90deg, ${priorityConfig.color}, transparent)` }" />
 
     <!-- Header -->
-    <div class="flex items-center justify-between px-5 py-3 flex-shrink-0" :style="{ borderBottom: `1px solid ${priorityTheme.border}` }">
-      <div class="flex items-center gap-2 flex-1 mr-2">
-        <!-- Save indicator -->
-        <div v-if="hasChanges" class="w-2 h-2 rounded-full bg-warning animate-pulse flex-shrink-0" />
-        <span class="text-xs" :style="{ color: 'var(--text-muted)' }">{{ t('task.title') }}</span>
+    <div class="px-5 pt-4 pb-2 flex-shrink-0">
+      <div class="flex items-start justify-between gap-2 mb-3">
+        <input
+          v-model="editTitle"
+          class="flex-1 bg-transparent text-lg font-bold outline-none text-[var(--text)] placeholder:text-[var(--text-muted)]"
+          :placeholder="t('task.title')"
+        />
+        <div class="flex items-center gap-0.5 flex-shrink-0">
+          <v-menu>
+            <template #activator="{ props: menuProps }">
+              <button v-bind="menuProps" class="p-1.5 rounded-lg hover:bg-[var(--bg-input)] transition-colors">
+                <v-icon icon="mdi-dots-horizontal" size="18" class="text-[var(--text-muted)]" />
+              </button>
+            </template>
+            <v-list density="compact" min-width="180" class="rounded-xl bg-[var(--bg-card)] border border-[var(--border)]">
+              <v-list-item prepend-icon="mdi-swap-horizontal" :title="t('task.delegateTask')" @click="emit('delegate', task.id)" />
+              <v-divider class="opacity-10" />
+              <v-list-item prepend-icon="mdi-delete-outline" :title="t('task.deleteTask')" class="text-error" @click="emit('delete', task.id)" />
+            </v-list>
+          </v-menu>
+          <button class="p-1.5 rounded-lg hover:bg-[var(--bg-input)] transition-colors" @click="handleClose">
+            <v-icon icon="mdi-close" size="18" class="text-[var(--text-muted)]" />
+          </button>
+        </div>
       </div>
-      <div class="flex items-center gap-1">
-        <!-- Save button -->
+
+      <!-- Save bar -->
+      <div v-if="hasChanges" class="flex items-center justify-between mb-3 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+        <span class="text-xs text-primary">{{ t('task.unsavedChanges').split('.')[0] }}</span>
         <button
-          v-if="hasChanges"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-          :class="saving ? 'bg-white/5 text-white/30' : 'bg-primary/20 text-primary-light hover:bg-primary/30'"
+          class="flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium bg-primary text-white hover:bg-primary-dark transition-all"
           :disabled="saving"
           @click="handleSave"
         >
-          <v-icon :icon="saving ? 'mdi-loading mdi-spin' : 'mdi-content-save-outline'" size="14" />
+          <v-icon :icon="saving ? 'mdi-loading mdi-spin' : 'mdi-check'" size="14" />
           {{ t('common.save') }}
-        </button>
-
-        <v-menu>
-          <template #activator="{ props: menuProps }">
-            <button v-bind="menuProps" class="p-1.5 rounded-lg transition-colors">
-              <v-icon icon="mdi-dots-horizontal" size="18" :style="{ color: 'var(--text-muted)' }" />
-            </button>
-          </template>
-          <v-list density="compact" min-width="180" class="rounded-xl" :style="{ background: 'var(--bg-card)', border: '1px solid var(--border)' }">
-            <v-list-item prepend-icon="mdi-swap-horizontal" :title="t('task.delegateTask')" @click="emit('delegate', task.id)" />
-            <v-divider class="opacity-10" />
-            <v-list-item prepend-icon="mdi-delete-outline" :title="t('task.deleteTask')" class="text-error" @click="emit('delete', task.id)" />
-          </v-list>
-        </v-menu>
-        <button class="p-1.5 rounded-lg transition-colors" @click="emit('close')">
-          <v-icon icon="mdi-close" size="18" :style="{ color: 'var(--text-muted)' }" />
         </button>
       </div>
     </div>
 
-    <!-- Content -->
-    <div class="flex-1 overflow-y-auto">
-      <!-- Title (editable) -->
-      <div class="px-5 py-4 section-border">
-        <input
-          v-model="editTitle"
-          class="w-full bg-transparent text-base font-bold outline-none"
-          :style="{ color: 'var(--text)', '--placeholder-color': 'var(--text-muted)' }"
-          :placeholder="t('task.title')"
-        />
-      </div>
+    <!-- Scrollable content -->
+    <div class="flex-1 overflow-y-auto px-5 space-y-5 pb-5">
 
-      <!-- Priority & Deadline (editable) -->
-      <div class="px-5 py-4 section-border">
-        <div class="grid grid-cols-2 gap-3">
-          <!-- Priority -->
-          <div>
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-2">{{ t('task.priority') }}</p>
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                v-for="opt in priorityOptions"
-                :key="opt.value"
-                class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all border"
-                :class="editPriority === opt.value ? 'border-white/20' : 'border-transparent hover:bg-white/5'"
-                :style="editPriority === opt.value ? { backgroundColor: opt.color + '20', color: opt.color } : { color: 'rgba(255,255,255,0.4)' }"
-                @click="editPriority = opt.value as Priority"
-              >
-                {{ opt.title }}
+      <!-- === SECTION: Properties === -->
+      <div class="space-y-4">
+        <!-- Priority -->
+        <div>
+          <label class="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)] mb-2 block">{{ t('task.priority') }}</label>
+          <div class="flex gap-2">
+            <button
+              v-for="p in priorities"
+              :key="p.value"
+              class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium border transition-all"
+              :class="editPriority === p.value ? 'shadow-sm' : 'border-transparent opacity-40 hover:opacity-70'"
+              :style="editPriority === p.value
+                ? { backgroundColor: p.color + '15', color: p.color, borderColor: p.color + '40' }
+                : {}"
+              @click="editPriority = p.value"
+            >
+              <v-icon :icon="p.icon" size="14" />
+              {{ t(`task.priorities.${p.value}`) }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Assignees -->
+        <div>
+          <label class="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)] mb-2 block">{{ t('task.assignee') }}</label>
+
+          <!-- Assignee list -->
+          <div v-if="assignees.length > 0 || task.assignee" class="space-y-2 mb-2">
+            <!-- Show all assignees -->
+            <div v-for="member in assignees" :key="member.id" class="flex items-center gap-3 py-1">
+              <div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary/60 to-secondary/60 flex items-center justify-center flex-shrink-0">
+                <span class="text-[9px] text-white font-semibold">{{ getInitials(member.name) }}</span>
+              </div>
+              <p class="flex-1 text-sm text-[var(--text)]">{{ member.name }}</p>
+              <button class="p-1 rounded hover:bg-error/10 transition-colors" @click="handleRemoveAssignee(member.id)">
+                <v-icon icon="mdi-close" size="14" class="text-[var(--text-muted)] hover:text-error" />
               </button>
+            </div>
+            <!-- Fallback: primary assignee if no multi-assign data -->
+            <div v-if="assignees.length === 0 && task.assignee" class="flex items-center gap-3 py-1">
+              <div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary/60 to-secondary/60 flex items-center justify-center flex-shrink-0">
+                <span class="text-[9px] text-white font-semibold">{{ getInitials(task.assignee.name) }}</span>
+              </div>
+              <p class="flex-1 text-sm text-[var(--text)]">{{ task.assignee.name }}</p>
             </div>
           </div>
 
-          <!-- Deadline -->
-          <div>
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-2">{{ t('task.deadline') }}</p>
+          <!-- Add assignee button / picker -->
+          <button
+            v-if="!showAddAssignee"
+            class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-dashed transition-all text-sm border-[var(--border)] text-[var(--text-muted)] hover:border-primary/30 hover:bg-primary/5"
+            @click="showAddAssignee = true"
+          >
+            <v-icon icon="mdi-account-plus-outline" size="18" />
+            {{ t('task.assignTask') }}
+          </button>
+          <MemberPicker v-else :team-id="teamId" :current-assignee-id="null" @select="handleAddAssignee" />
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)] mb-2 block">{{ t('task.description') }}</label>
+          <textarea
+            v-model="editDescription"
+            :placeholder="t('task.noDescription')"
+            rows="3"
+            class="w-full bg-[var(--bg-input)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-secondary)] leading-relaxed outline-none transition-all resize-none border border-[var(--border)] focus:border-primary/40"
+          />
+        </div>
+
+        <!-- Labels -->
+        <LabelManager :board-id="boardId" :task-id="task.id" :current-labels="task.labels ?? []" @updated="emit('updated')" />
+
+        <!-- Subtasks -->
+        <SubtaskList v-if="totalSubtasks > 0" :subtasks="task.subtasks ?? []" />
+
+        <!-- Deadline (full width, at bottom of properties) -->
+        <div>
+          <label class="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)] mb-2 block">{{ t('task.deadline') }}</label>
+          <div class="relative">
+            <v-icon icon="mdi-calendar-outline" size="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               v-model="editDeadline"
               type="date"
-              class="w-full bg-white/5 rounded-lg px-3 py-1.5 text-sm text-white/70 outline-none transition-all duration-300 field-border"
+              class="w-full pl-9 pr-3.5 py-2.5 rounded-xl text-sm outline-none border border-[var(--border)] bg-[var(--bg-input)] text-[var(--text)] focus:border-primary/40 transition-colors"
             />
-            <div
-              v-if="deadlineInfo"
-              class="mt-1.5 text-[11px]"
-              :class="{ 'text-error': deadlineInfo.isOverdue, 'text-warning': deadlineInfo.isUrgent, 'text-white/25': !deadlineInfo.isOverdue && !deadlineInfo.isUrgent }"
-            >
-              {{ deadlineInfo.text }}
-            </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Assignee (editable) -->
-      <div class="px-5 py-4 section-border">
-        <p class="text-[10px] font-semibold uppercase tracking-widest mb-2" :style="{ color: 'var(--text-muted)' }">{{ t('task.assignee') }}</p>
-        <div v-if="task.assignee" class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-secondary/60 flex items-center justify-center">
-            <span class="text-[10px] text-white font-semibold">{{ getInitials(task.assignee.name) }}</span>
-          </div>
-          <p class="text-sm font-medium" :style="{ color: 'var(--text)' }">{{ task.assignee.name }}</p>
-          <button class="ml-auto text-[11px] text-error/60 hover:text-error transition-colors" @click="editAssigneeId = ''; showAssigneeInput = true">
-            <v-icon icon="mdi-close-circle-outline" size="16" />
-          </button>
-        </div>
-        <div v-else>
-          <div v-if="showAssigneeInput" class="flex gap-2">
-            <input
-              v-model="editAssigneeId"
-              placeholder="User ID"
-              class="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none field-border"
-              :style="{ background: 'var(--bg-input)', color: 'var(--text)' }"
-              @keyup.enter="handleAssigneeChange"
-            />
-            <button class="px-2 py-1.5 rounded-lg bg-primary/20 text-primary-light hover:bg-primary/30 transition-colors" @click="handleAssigneeChange">
-              <v-icon icon="mdi-check" size="14" />
-            </button>
-            <button class="px-2 py-1.5 rounded-lg transition-colors" :style="{ color: 'var(--text-muted)' }" @click="showAssigneeInput = false">
-              <v-icon icon="mdi-close" size="14" />
-            </button>
-          </div>
-          <button v-else class="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed transition-all text-sm" :style="{ borderColor: 'var(--border)', color: 'var(--text-muted)' }" @click="showAssigneeInput = true">
-            <v-icon icon="mdi-account-plus-outline" size="16" />
-            {{ t('task.unassigned') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Description (editable) — moved below assignee -->
-      <div class="px-5 py-4 section-border">
-        <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-2">{{ t('task.description') }}</p>
-        <textarea
-          v-model="editDescription"
-          :placeholder="t('task.noDescription')"
-          rows="3"
-          class="w-full bg-white/[0.03] rounded-lg px-3 py-2.5 text-sm text-white/60 leading-relaxed outline-none transition-all duration-300 resize-none field-border"
-        />
-      </div>
-
-      <!-- Subtasks -->
-      <div v-if="totalSubtasks > 0" class="px-5 py-4 section-border">
-        <div class="flex items-center justify-between mb-3">
-          <p class="text-[10px] font-semibold uppercase tracking-widest text-white/25">{{ t('task.subtasks') }}</p>
-          <span class="text-[11px] text-white/30">{{ completedSubtasks }}/{{ totalSubtasks }}</span>
-        </div>
-        <v-progress-linear :model-value="(completedSubtasks / totalSubtasks) * 100" color="primary" height="4" rounded bg-color="surface" class="mb-3" />
-        <div class="space-y-0.5">
-          <div v-for="sub in task.subtasks" :key="sub.id" class="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-white/[0.02] transition-colors">
-            <v-checkbox-btn :model-value="sub.isCompleted" density="compact" color="primary" />
-            <span class="text-sm" :class="sub.isCompleted ? 'line-through text-white/25' : 'text-white/70'">{{ sub.title }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Labels -->
-      <div class="px-5 py-4 section-border">
-        <LabelManager :board-id="boardId" :task-id="task.id" :current-labels="task.labels ?? []" @updated="emit('updated')" />
-      </div>
-
-      <!-- Comments -->
-      <div class="px-5 py-4 section-border">
-        <CommentSection :task-id="task.id" />
-      </div>
-
-      <!-- Attachments -->
-      <div class="px-5 py-4 section-border">
-        <AttachmentSection :task-id="task.id" />
-      </div>
-
-      <!-- Activity -->
-      <div class="px-5 py-4 section-border">
-        <ActivityTimeline :activities="activities" />
-      </div>
-
-      <!-- Meta -->
-      <div class="px-5 py-4">
-        <div class="flex items-center gap-4 text-[11px] text-white/20">
-          <div class="flex items-center gap-1.5">
-            <v-icon icon="mdi-calendar-plus" size="13" />
-            {{ formatDate(task.createdAt) }}
-          </div>
-          <div class="flex items-center gap-1.5">
-            <v-icon icon="mdi-calendar-edit" size="13" />
-            {{ formatDate(task.updatedAt) }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sticky save bar (when changes exist) -->
-    <div v-if="hasChanges" class="px-5 py-3 flex-shrink-0 section-border-top" :style="{ background: 'var(--bg-card)' }">
-      <div class="flex items-center justify-between">
-        <p class="text-xs text-warning flex items-center gap-1.5">
-          <v-icon icon="mdi-circle-medium" size="16" />
-          {{ t('common.save') }}
-        </p>
-        <div class="flex gap-2">
-          <button
-            class="px-3 py-1.5 rounded-lg text-xs text-white/40 hover:text-white/60 hover:bg-white/5 transition-all"
-            @click="editTitle = task.title; editDescription = task.description ?? ''; editPriority = task.priority; editDeadline = task.deadline?.slice(0, 10) ?? ''; hasChanges = false"
+          <div
+            v-if="deadlineInfo"
+            class="mt-1.5 text-xs px-2 py-1 rounded-lg inline-flex items-center gap-1"
+            :class="{
+              'bg-error/10 text-error': deadlineInfo.isOverdue,
+              'bg-warning/10 text-warning': deadlineInfo.isUrgent,
+              'bg-[var(--bg-input)] text-[var(--text-muted)]': !deadlineInfo.isOverdue && !deadlineInfo.isUrgent
+            }"
           >
-            {{ t('common.cancel') }}
-          </button>
+            <v-icon :icon="deadlineInfo.isOverdue ? 'mdi-alert-circle' : 'mdi-clock-outline'" size="13" />
+            {{ deadlineInfo.text }}
+          </div>
+        </div>
+      </div>
+
+      <!-- === SECTION: Tabs (Comments / Attachments / Activity) === -->
+      <div class="border-t border-[var(--border)] pt-4">
+        <div class="flex gap-4 mb-4">
           <button
-            class="px-4 py-1.5 rounded-lg text-xs font-medium text-white transition-all"
-            :class="saving ? 'bg-primary/30' : 'bg-primary hover:bg-primary-dark'"
-            :disabled="saving"
-            @click="handleSave"
+            v-for="tab in (['comments', 'attachments', 'activity'] as const)"
+            :key="tab"
+            class="pb-1.5 text-xs font-medium border-b-2 transition-all"
+            :class="activeTab === tab ? 'border-primary text-primary-light' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'"
+            @click="activeTab = tab"
           >
-            {{ saving ? t('common.loading') : t('common.save') }}
+            {{ tab === 'comments' ? t('task.comments') : tab === 'attachments' ? t('task.labels') : t('task.activity') }}
           </button>
         </div>
+
+        <CommentSection v-if="activeTab === 'comments'" :task-id="task.id" />
+        <AttachmentSection v-else-if="activeTab === 'attachments'" :task-id="task.id" />
+        <ActivityTimeline v-else :activities="activities" />
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.section-border {
-  border-bottom: 1px solid var(--p-border, rgba(255,255,255,0.04));
-  background: var(--p-bg, transparent);
-  transition: border-color 0.3s, background 0.3s;
-}
-.section-border-top {
-  border-top: 1px solid var(--p-border, rgba(255,255,255,0.04));
-  transition: border-color 0.3s;
-}
-.field-border {
-  border: 1px solid var(--p-border-soft, rgba(255,255,255,0.05));
-  transition: border-color 0.3s;
-}
-.field-border:focus {
-  border-color: var(--p-border, rgba(99, 102, 241, 0.4));
-}
-</style>

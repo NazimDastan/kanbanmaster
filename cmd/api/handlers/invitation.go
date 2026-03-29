@@ -11,15 +11,22 @@ import (
 
 type InvitationHandler struct {
 	invService *services.InvitationService
+	authz      *services.AuthzService
 }
 
-func NewInvitationHandler(is *services.InvitationService) *InvitationHandler {
-	return &InvitationHandler{invService: is}
+func NewInvitationHandler(is *services.InvitationService, authz *services.AuthzService) *InvitationHandler {
+	return &InvitationHandler{invService: is, authz: authz}
 }
 
 func (h *InvitationHandler) Send(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	teamID := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessTeam(userID, teamID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var body struct {
 		Email string `json:"email"`
@@ -93,7 +100,14 @@ func (h *InvitationHandler) Reject(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *InvitationHandler) GetTeamInvitations(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	teamID := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessTeam(userID, teamID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	invitations, err := h.invService.GetTeamInvitations(teamID)
 	if err != nil {

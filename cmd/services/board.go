@@ -87,7 +87,7 @@ func (s *BoardService) GetWithColumns(boardID string) (*models.BoardWithColumns,
 
 	// Fetch columns
 	colRows, err := s.db.Query(
-		"SELECT id, board_id, name, position, created_at FROM columns WHERE board_id = $1 ORDER BY position",
+		"SELECT id, board_id, name, position, color, created_at FROM columns WHERE board_id = $1 ORDER BY position",
 		boardID,
 	)
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *BoardService) GetWithColumns(boardID string) (*models.BoardWithColumns,
 
 	for colRows.Next() {
 		var col models.Column
-		if err := colRows.Scan(&col.ID, &col.BoardID, &col.Name, &col.Position, &col.CreatedAt); err != nil {
+		if err := colRows.Scan(&col.ID, &col.BoardID, &col.Name, &col.Position, &col.Color, &col.CreatedAt); err != nil {
 			return nil, err
 		}
 		col.Tasks = []models.Task{}
@@ -186,8 +186,15 @@ func (s *BoardService) getColumnTasks(columnID string) ([]models.Task, error) {
 			}
 		}
 
-		t.Subtasks = []models.Subtask{}
-		t.Labels = []models.Label{}
+		// Load labels
+		t.Labels = s.loadTaskLabels(t.ID)
+
+		// Load subtasks
+		t.Subtasks = s.loadTaskSubtasks(t.ID)
+
+		// Load assignees
+		t.Assignees = s.loadTaskAssignees(t.ID)
+
 		tasks = append(tasks, t)
 	}
 
@@ -195,4 +202,82 @@ func (s *BoardService) getColumnTasks(columnID string) ([]models.Task, error) {
 		tasks = []models.Task{}
 	}
 	return tasks, nil
+}
+
+func (s *BoardService) loadTaskLabels(taskID string) []models.Label {
+	rows, err := s.db.Query(
+		`SELECT l.id, l.board_id, l.name, l.color
+		 FROM labels l
+		 JOIN task_labels tl ON tl.label_id = l.id
+		 WHERE tl.task_id = $1`,
+		taskID,
+	)
+	if err != nil {
+		return []models.Label{}
+	}
+	defer rows.Close()
+
+	var labels []models.Label
+	for rows.Next() {
+		var l models.Label
+		if err := rows.Scan(&l.ID, &l.BoardID, &l.Name, &l.Color); err != nil {
+			continue
+		}
+		labels = append(labels, l)
+	}
+	if labels == nil {
+		return []models.Label{}
+	}
+	return labels
+}
+
+func (s *BoardService) loadTaskSubtasks(taskID string) []models.Subtask {
+	rows, err := s.db.Query(
+		"SELECT id, task_id, title, is_completed, created_at FROM subtasks WHERE task_id = $1 ORDER BY created_at",
+		taskID,
+	)
+	if err != nil {
+		return []models.Subtask{}
+	}
+	defer rows.Close()
+
+	var subtasks []models.Subtask
+	for rows.Next() {
+		var st models.Subtask
+		if err := rows.Scan(&st.ID, &st.TaskID, &st.Title, &st.IsCompleted, &st.CreatedAt); err != nil {
+			continue
+		}
+		subtasks = append(subtasks, st)
+	}
+	if subtasks == nil {
+		return []models.Subtask{}
+	}
+	return subtasks
+}
+
+func (s *BoardService) loadTaskAssignees(taskID string) []models.User {
+	rows, err := s.db.Query(
+		`SELECT u.id, u.email, u.name, u.avatar_url, u.created_at, u.updated_at
+		 FROM users u
+		 JOIN task_assignees ta ON ta.user_id = u.id
+		 WHERE ta.task_id = $1`,
+		taskID,
+	)
+	if err != nil {
+		return []models.User{}
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.Name, &u.AvatarURL, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			continue
+		}
+		users = append(users, u)
+	}
+	if users == nil {
+		return []models.User{}
+	}
+	return users
 }

@@ -10,6 +10,7 @@ type Task struct {
 	CreatorID   string     `json:"creatorId"`
 	AssigneeID  *string    `json:"assigneeId"`
 	Assignee    *User      `json:"assignee,omitempty"`
+	Assignees   []User     `json:"assignees"`
 	Priority    string     `json:"priority"`
 	Deadline    *time.Time `json:"deadline"`
 	Position    int        `json:"position"`

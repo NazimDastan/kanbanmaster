@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"kanbanmaster/cmd/models"
@@ -50,12 +51,16 @@ func (s *DelegationService) Delegate(taskID, fromUserID string, input DelegateIn
 		return nil, err
 	}
 
-	// Log activity
+	// Log activity (safe JSON encoding)
+	detailsJSON, _ := json.Marshal(map[string]string{
+		"fromUserId": fromUserID,
+		"toUserId":   input.ToUserID,
+		"reason":     input.Reason,
+	})
 	_, err = tx.Exec(
 		`INSERT INTO task_activity_log (task_id, user_id, action, details)
 		 VALUES ($1, $2, 'delegated', $3)`,
-		taskID, fromUserID,
-		`{"fromUserId":"`+fromUserID+`","toUserId":"`+input.ToUserID+`","reason":"`+input.Reason+`"}`,
+		taskID, fromUserID, string(detailsJSON),
 	)
 	if err != nil {
 		return nil, err

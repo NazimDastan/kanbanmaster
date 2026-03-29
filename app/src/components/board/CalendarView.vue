@@ -91,8 +91,10 @@ function priorityColor(p: Priority): string {
     </div>
 
     <!-- Day headers -->
+    <div class="overflow-x-auto">
+    <div class="min-w-[500px]">
     <div class="grid grid-cols-7 gap-px mb-1">
-      <div v-for="day in dayNames" :key="day" class="text-center text-[10px] font-medium text-white/25 py-1">
+      <div v-for="day in dayNames" :key="day" class="text-center text-[10px] font-medium py-1 text-[var(--text-muted)]">
         {{ day }}
       </div>
     </div>
@@ -125,6 +127,8 @@ function priorityColor(p: Priority): string {
           <p v-if="day.tasks.length > 2" class="text-[9px] text-white/25 px-1">+{{ day.tasks.length - 2 }}</p>
         </div>
       </div>
+    </div>
+    </div>
     </div>
   </div>
 </template>

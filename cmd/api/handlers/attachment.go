@@ -9,15 +9,22 @@ import (
 
 type AttachmentHandler struct {
 	attachmentService *services.AttachmentService
+	authz             *services.AuthzService
 }
 
-func NewAttachmentHandler(as *services.AttachmentService) *AttachmentHandler {
-	return &AttachmentHandler{attachmentService: as}
+func NewAttachmentHandler(as *services.AttachmentService, authz *services.AuthzService) *AttachmentHandler {
+	return &AttachmentHandler{attachmentService: as, authz: authz}
 }
 
 func (h *AttachmentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	taskID := r.PathValue("taskId")
+
+	ok, _ := h.authz.UserCanAccessTask(userID, taskID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var body struct {
 		Filename    string `json:"filename"`
@@ -45,7 +52,15 @@ func (h *AttachmentHandler) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AttachmentHandler) List(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	taskID := r.PathValue("taskId")
+
+	ok, _ := h.authz.UserCanAccessTask(userID, taskID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
+
 	attachments, err := h.attachmentService.ListByTask(taskID)
 	if err != nil {
 		writeError(w, "Failed to list", http.StatusInternalServerError)
@@ -55,7 +70,15 @@ func (h *AttachmentHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AttachmentHandler) Download(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessAttachment(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
+
 	a, err := h.attachmentService.Get(id)
 	if err != nil {
 		writeError(w, "Not found", http.StatusNotFound)
@@ -67,6 +90,13 @@ func (h *AttachmentHandler) Download(w http.ResponseWriter, r *http.Request) {
 func (h *AttachmentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessAttachment(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
+
 	if err := h.attachmentService.Delete(id, userID); err != nil {
 		writeError(w, "Failed to delete", http.StatusInternalServerError)
 		return

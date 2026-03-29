@@ -10,10 +10,11 @@ import (
 
 type OrgHandler struct {
 	orgService *services.OrgService
+	authz      *services.AuthzService
 }
 
-func NewOrgHandler(orgService *services.OrgService) *OrgHandler {
-	return &OrgHandler{orgService: orgService}
+func NewOrgHandler(orgService *services.OrgService, authz *services.AuthzService) *OrgHandler {
+	return &OrgHandler{orgService: orgService, authz: authz}
 }
 
 func (h *OrgHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +54,14 @@ func (h *OrgHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *OrgHandler) Get(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessOrg(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	org, err := h.orgService.Get(id)
 	if err != nil {
@@ -70,6 +78,12 @@ func (h *OrgHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *OrgHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessOrg(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var input services.CreateOrgInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -93,6 +107,12 @@ func (h *OrgHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
 
+	ok, _ := h.authz.UserCanAccessOrg(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
+
 	err := h.orgService.Delete(id, userID)
 	if err != nil {
 		if errors.Is(err, services.ErrNotOrgOwner) {
@@ -104,4 +124,3 @@ func (h *OrgHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
-

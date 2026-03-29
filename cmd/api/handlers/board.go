@@ -10,19 +10,29 @@ import (
 
 type BoardHandler struct {
 	boardService *services.BoardService
+	authz        *services.AuthzService
 }
 
-func NewBoardHandler(boardService *services.BoardService) *BoardHandler {
-	return &BoardHandler{boardService: boardService}
+func NewBoardHandler(boardService *services.BoardService, authz *services.AuthzService) *BoardHandler {
+	return &BoardHandler{boardService: boardService, authz: authz}
 }
 
 func (h *BoardHandler) Create(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
+
 	var body struct {
 		Name   string `json:"name"`
 		TeamID string `json:"teamId"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" || body.TeamID == "" {
 		writeError(w, "Name and teamId are required", http.StatusBadRequest)
+		return
+	}
+
+	// Check user has access to the team
+	ok, _ := h.authz.UserCanAccessTeam(userID, body.TeamID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
 		return
 	}
 
@@ -50,7 +60,14 @@ func (h *BoardHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BoardHandler) Get(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessBoard(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	board, err := h.boardService.GetWithColumns(id)
 	if err != nil {
@@ -65,7 +82,14 @@ func (h *BoardHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BoardHandler) Update(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessBoard(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var body struct {
 		Name string `json:"name"`
@@ -84,7 +108,14 @@ func (h *BoardHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BoardHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	id := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessBoard(userID, id)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	if err := h.boardService.Delete(id); err != nil {
 		writeError(w, "Failed to delete board", http.StatusInternalServerError)

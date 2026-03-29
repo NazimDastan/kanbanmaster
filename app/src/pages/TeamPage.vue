@@ -28,9 +28,17 @@ const organizations = ref<Organization[]>([])
 const inviteLoading = ref(false)
 const inviteError = ref('')
 const createLoading = ref(false)
+const showCreateBoardModal = ref(false)
+const newBoardName = ref('')
+const createBoardLoading = ref(false)
 
 const roleColors: Record<string, string> = { owner: '#ef4444', leader: '#6366f1', member: '#10b981', viewer: '#64748b' }
 const roleOptions = [{ value: 'member', title: 'Member' }, { value: 'leader', title: 'Leader' }, { value: 'viewer', title: 'Viewer' }]
+const roleOptionsWithDesc = [
+  { value: 'member', title: 'Member', description: 'Can create and edit tasks, move cards between columns, and collaborate with the team.' },
+  { value: 'leader', title: 'Leader', description: 'Full team management access including member invites, role changes, and board settings.' },
+  { value: 'viewer', title: 'Viewer', description: 'Read-only access to boards and tasks. Cannot make changes or move cards.' },
+]
 
 async function loadTeams() {
   await teamStore.fetchTeams()
@@ -112,13 +120,27 @@ async function handleRoleChange(userId: string, role: string) {
   await teamStore.updateMemberRole(teamStore.currentTeam.id, userId, role)
   toast.success(t('team.role') + ' ✓')
 }
+
+async function handleCreateBoard() {
+  if (!newBoardName.value || !teamStore.currentTeam) return
+  createBoardLoading.value = true
+  try {
+    const board = await boardStore.createBoard(newBoardName.value, teamStore.currentTeam.id)
+    toast.success(t('board.newTask').replace('Task', 'Board') + ' ✓')
+    showCreateBoardModal.value = false
+    newBoardName.value = ''
+    router.push(`/boards/${board.id}`)
+  } finally {
+    createBoardLoading.value = false
+  }
+}
 </script>
 
 <template>
   <div class="p-4 md:p-6 lg:p-8 space-y-5">
     <div class="flex items-center justify-between">
       <h1 class="text-xl font-bold">{{ t('team.teams') }}</h1>
-      <v-btn color="primary" prepend-icon="mdi-plus" size="small" style="text-transform: none" @click="showCreateModal = true">{{ t('team.newTeam') }}</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" size="small" class="normal-case" @click="showCreateModal = true">{{ t('team.newTeam') }}</v-btn>
     </div>
 
     <div v-if="teamStore.loading && !teamStore.teams.length" class="flex justify-center py-16">
@@ -141,8 +163,8 @@ async function handleRoleChange(userId: string, role: string) {
               <v-icon icon="mdi-account-group" size="18" class="text-primary-light" />
             </div>
             <div>
-              <p class="text-sm font-medium" :style="{ color: 'var(--text)' }">{{ team.name }}</p>
-              <p class="text-[11px]" :style="{ color: 'var(--text-muted)' }">{{ t('team.teams') }}</p>
+              <p class="text-sm font-medium text-[var(--text)]">{{ team.name }}</p>
+              <p class="text-[11px] text-[var(--text-muted)]">{{ t('team.teams') }}</p>
             </div>
           </button>
           <button
@@ -159,7 +181,7 @@ async function handleRoleChange(userId: string, role: string) {
         <div v-if="teamStore.currentTeam" class="rounded-xl border border-white/5 bg-card overflow-hidden">
           <div class="flex items-center justify-between px-4 py-3 border-b border-white/5">
             <h2 class="text-sm font-semibold">{{ teamStore.currentTeam.name }}</h2>
-            <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-account-plus-outline" style="text-transform: none" @click="showInviteModal = true">{{ t('team.invite') }}</v-btn>
+            <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-account-plus-outline" class="normal-case" @click="showInviteModal = true">{{ t('team.invite') }}</v-btn>
           </div>
 
           <div v-if="teamStore.currentTeam.members?.length" class="divide-y divide-white/[0.03]">
@@ -190,30 +212,35 @@ async function handleRoleChange(userId: string, role: string) {
               </div>
             </div>
           </div>
-          <div v-else class="py-8 text-center text-xs" :style="{ color: 'var(--text-muted)' }">{{ t('team.noMembers') }}</div>
+          <div v-else class="py-8 text-center text-xs text-[var(--text-muted)]">{{ t('team.noMembers') }}</div>
 
           <!-- Team Boards -->
-          <div :style="{ borderTop: '1px solid var(--border)' }" class="px-4 py-3">
-            <p class="text-[10px] font-semibold uppercase tracking-widest mb-3" :style="{ color: 'var(--text-muted)' }">{{ t('sidebar.boards') }}</p>
+          <div class="px-4 py-3 border-t border-[var(--border)]">
+            <p class="text-[10px] font-semibold uppercase tracking-widest mb-3 text-[var(--text-muted)]">{{ t('sidebar.boards') }}</p>
             <div v-if="getTeamBoards(teamStore.currentTeam.id).length > 0" class="space-y-1.5">
               <button
                 v-for="board in getTeamBoards(teamStore.currentTeam.id)"
                 :key="board.id"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left"
-                :style="{ border: '1px solid var(--border)' }"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left border border-[var(--border)]"
                 @click="router.push(`/boards/${board.id}`)"
               >
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0">
                   <v-icon icon="mdi-view-column-outline" size="16" class="text-primary-light" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium truncate" :style="{ color: 'var(--text)' }">{{ board.name }}</p>
-                  <p class="text-[10px]" :style="{ color: 'var(--text-muted)' }">{{ board.createdAt.slice(0, 10) }}</p>
+                  <p class="text-sm font-medium truncate text-[var(--text)]">{{ board.name }}</p>
+                  <p class="text-[10px] text-[var(--text-muted)]">{{ board.createdAt.slice(0, 10) }}</p>
                 </div>
-                <v-icon icon="mdi-chevron-right" size="16" :style="{ color: 'var(--text-faint)' }" />
+                <v-icon icon="mdi-chevron-right" size="16" class="text-[var(--text-faint)]" />
               </button>
             </div>
-            <p v-else class="text-xs text-center py-3" :style="{ color: 'var(--text-muted)' }">{{ t('dashboard.noBoardsYet') }}</p>
+            <div v-else class="text-center py-4">
+              <p class="text-xs text-[var(--text-muted)] mb-2">{{ t('dashboard.noBoardsYet') }}</p>
+              <button class="text-xs text-primary hover:text-primary-light transition-colors font-medium" @click="showCreateBoardModal = true">
+                <v-icon icon="mdi-plus" size="14" class="mr-0.5" />
+                {{ t('team.addBoard') }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -222,15 +249,95 @@ async function handleRoleChange(userId: string, role: string) {
     </div>
 
     <!-- Invite modal -->
-    <v-dialog v-model="showInviteModal" max-width="400">
+    <v-dialog v-model="showInviteModal" max-width="440">
+      <v-card color="surface" rounded="xl" class="overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center gap-3 px-6 pt-6 pb-4">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <v-icon icon="mdi-account-plus-outline" size="20" color="primary" />
+          </div>
+          <div>
+            <h3 class="text-base font-semibold text-[var(--text)]">{{ t('team.inviteMember') }}</h3>
+            <p class="text-xs text-[var(--text-muted)]">{{ teamStore.currentTeam?.name }}</p>
+          </div>
+        </div>
+
+        <v-divider class="opacity-10" />
+
+        <!-- Body -->
+        <div class="px-6 py-5 space-y-5">
+          <v-alert v-if="inviteError" type="error" variant="tonal" density="compact" class="text-xs" closable @click:close="inviteError = ''">{{ inviteError }}</v-alert>
+
+          <!-- Email input -->
+          <v-text-field
+            v-model="inviteEmail"
+            :label="t('team.emailAddress')"
+            type="email"
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-email-outline"
+            placeholder="colleague@company.com"
+            hide-details="auto"
+            autofocus
+          />
+
+          <!-- Role selection -->
+          <div>
+            <label class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2 block">{{ t('team.role') }}</label>
+            <v-radio-group v-model="inviteRole" hide-details>
+              <div class="space-y-2">
+                <label
+                  v-for="role in roleOptionsWithDesc"
+                  :key="role.value"
+                  class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all"
+                  :style="{
+                    borderColor: inviteRole === role.value ? roleColors[role.value] + '60' : 'var(--border)',
+                    background: inviteRole === role.value ? roleColors[role.value] + '08' : 'transparent',
+                  }"
+                >
+                  <v-radio :value="role.value" density="compact" hide-details class="mt-0.5" />
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-medium text-[var(--text)]">{{ role.title }}</span>
+                      <span
+                        class="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide"
+                        :style="{ backgroundColor: roleColors[role.value] + '18', color: roleColors[role.value] }"
+                      >{{ role.value }}</span>
+                    </div>
+                    <p class="text-[11px] text-[var(--text-muted)] mt-0.5 leading-relaxed">{{ role.description }}</p>
+                  </div>
+                </label>
+              </div>
+            </v-radio-group>
+          </div>
+        </div>
+
+        <v-divider class="opacity-10" />
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-2 px-6 py-4">
+          <v-btn variant="text" size="small" class="normal-case" @click="showInviteModal = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn
+            color="primary"
+            size="small"
+            :loading="inviteLoading"
+            :disabled="!inviteEmail"
+            class="normal-case"
+            prepend-icon="mdi-send-outline"
+            @click="handleInvite"
+          >{{ t('team.sendInvite') }}</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Create board modal -->
+    <v-dialog v-model="showCreateBoardModal" max-width="400">
       <v-card class="pa-5" color="surface">
-        <h3 class="text-sm font-bold mb-3">{{ t('team.inviteMember') }}</h3>
-        <v-alert v-if="inviteError" type="error" variant="tonal" class="mb-3 text-xs">{{ inviteError }}</v-alert>
-        <v-text-field v-model="inviteEmail" :label="t('team.emailAddress')" type="email" prepend-inner-icon="mdi-email-outline" class="mb-2" />
-        <v-select v-model="inviteRole" :items="roleOptions" :label="t('team.role')" class="mb-3" />
-        <div class="flex justify-end gap-2">
-          <v-btn variant="text" size="small" @click="showInviteModal = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="primary" size="small" :loading="inviteLoading" style="text-transform: none" @click="handleInvite">{{ t('team.sendInvite') }}</v-btn>
+        <h3 class="text-sm font-bold mb-3">{{ t('team.addBoard') }}</h3>
+        <v-text-field v-model="newBoardName" :label="t('team.boardName')" prepend-inner-icon="mdi-view-column-outline" autofocus @keyup.enter="handleCreateBoard" />
+        <div class="flex justify-end gap-2 mt-3">
+          <v-btn variant="text" size="small" @click="showCreateBoardModal = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="primary" size="small" :disabled="!newBoardName" :loading="createBoardLoading" class="normal-case" @click="handleCreateBoard">{{ t('common.create') }}</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -242,7 +349,7 @@ async function handleRoleChange(userId: string, role: string) {
         <v-text-field v-model="newTeamName" :label="t('team.teamName')" prepend-inner-icon="mdi-account-group-outline" class="mb-3" />
         <div class="flex justify-end gap-2">
           <v-btn variant="text" size="small" @click="showCreateModal = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="primary" size="small" :disabled="!newTeamName" :loading="createLoading" style="text-transform: none" @click="handleCreateTeam">{{ t('common.create') }}</v-btn>
+          <v-btn color="primary" size="small" :disabled="!newTeamName" :loading="createLoading" class="normal-case" @click="handleCreateTeam">{{ t('common.create') }}</v-btn>
         </div>
       </v-card>
     </v-dialog>

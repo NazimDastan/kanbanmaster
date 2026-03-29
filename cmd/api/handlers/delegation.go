@@ -9,15 +9,22 @@ import (
 
 type DelegationHandler struct {
 	delegationService *services.DelegationService
+	authz             *services.AuthzService
 }
 
-func NewDelegationHandler(ds *services.DelegationService) *DelegationHandler {
-	return &DelegationHandler{delegationService: ds}
+func NewDelegationHandler(ds *services.DelegationService, authz *services.AuthzService) *DelegationHandler {
+	return &DelegationHandler{delegationService: ds, authz: authz}
 }
 
 func (h *DelegationHandler) Delegate(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("userID").(string)
 	taskID := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessTask(userID, taskID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	var input services.DelegateInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.ToUserID == "" {
@@ -34,7 +41,14 @@ func (h *DelegationHandler) Delegate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DelegationHandler) GetActivity(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	taskID := r.PathValue("id")
+
+	ok, _ := h.authz.UserCanAccessTask(userID, taskID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	logs, err := h.delegationService.GetActivityLog(taskID)
 	if err != nil {

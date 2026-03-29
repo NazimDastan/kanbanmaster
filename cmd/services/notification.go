@@ -6,8 +6,17 @@ import (
 	"kanbanmaster/cmd/models"
 )
 
+// OnNotifyFunc is a callback invoked after a notification is created
+type OnNotifyFunc func(userID string, n models.Notification)
+
 type NotificationService struct {
-	db *sql.DB
+	db       *sql.DB
+	onNotify OnNotifyFunc
+}
+
+// SetOnNotify sets the real-time broadcast callback
+func (s *NotificationService) SetOnNotify(fn OnNotifyFunc) {
+	s.onNotify = fn
 }
 
 func NewNotificationService(db *sql.DB) *NotificationService {
@@ -24,6 +33,10 @@ func (s *NotificationService) Create(userID, nType, title, message string, refer
 	).Scan(&n.ID, &n.UserID, &n.Type, &n.Title, &n.Message, &n.ReferenceID, &n.IsRead, &n.CreatedAt)
 	if err != nil {
 		return nil, err
+	}
+	// Broadcast via WebSocket if callback set
+	if s.onNotify != nil {
+		s.onNotify(userID, n)
 	}
 	return &n, nil
 }

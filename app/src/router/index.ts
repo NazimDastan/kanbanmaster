@@ -50,6 +50,18 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/403',
+    name: 'Forbidden',
+    component: () => import('@/pages/ForbiddenPage.vue'),
+    meta: { requiresAuth: false, layout: 'auth' },
+  },
+  {
+    path: '/500',
+    name: 'ServerError',
+    component: () => import('@/pages/ServerErrorPage.vue'),
+    meta: { requiresAuth: false, layout: 'auth' },
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/pages/NotFoundPage.vue'),

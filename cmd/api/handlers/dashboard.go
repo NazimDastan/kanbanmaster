@@ -8,10 +8,11 @@ import (
 
 type DashboardHandler struct {
 	perfService *services.PerformanceService
+	authz       *services.AuthzService
 }
 
-func NewDashboardHandler(ps *services.PerformanceService) *DashboardHandler {
-	return &DashboardHandler{perfService: ps}
+func NewDashboardHandler(ps *services.PerformanceService, authz *services.AuthzService) *DashboardHandler {
+	return &DashboardHandler{perfService: ps, authz: authz}
 }
 
 func (h *DashboardHandler) Summary(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +27,14 @@ func (h *DashboardHandler) Summary(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DashboardHandler) TeamPerformance(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID").(string)
 	teamID := r.PathValue("teamId")
+
+	ok, _ := h.authz.UserCanAccessTeam(userID, teamID)
+	if !ok {
+		writeError(w, "Not found", http.StatusNotFound)
+		return
+	}
 
 	performance, err := h.perfService.GetTeamPerformance(teamID)
 	if err != nil {

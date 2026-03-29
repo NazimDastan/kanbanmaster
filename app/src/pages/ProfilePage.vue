@@ -6,10 +6,27 @@ import { getInitials } from '@/utils/format'
 import { required, minLength, email as emailRule } from '@/utils/validation'
 import { setLocale } from '@/i18n'
 import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import { useTheme } from '@/composables/useTheme'
+import type { AccentColor } from '@/composables/useTheme'
 
 const { t, locale } = useI18n()
 const toast = useToast()
+const { confirm } = useConfirm()
 const authStore = useAuthStore()
+const { accentColor, accentColors, setAccent } = useTheme()
+
+const accentOptions: { key: AccentColor; gradient: string }[] = [
+  { key: 'purple', gradient: 'linear-gradient(135deg, #6366f1, #a855f7)' },
+  { key: 'blue', gradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)' },
+  { key: 'green', gradient: 'linear-gradient(135deg, #10b981, #14b8a6)' },
+  { key: 'orange', gradient: 'linear-gradient(135deg, #f59e0b, #f97316)' },
+]
+
+function handleAccentChange(color: AccentColor) {
+  setAccent(color)
+  toast.info(t(`profile.${color}`))
+}
 
 // Profile
 const name = ref(authStore.user?.name ?? '')
@@ -21,6 +38,10 @@ const profileSaved = ref(false)
 // Avatar
 const avatarFile = ref<File | null>(null)
 const avatarPreview = ref<string | null>(null)
+const showPhotoPreview = ref(false)
+
+const hasPhoto = computed(() => !!(avatarPreview.value || authStore.user?.avatarUrl))
+const photoSrc = computed(() => avatarPreview.value ?? authStore.user?.avatarUrl ?? '')
 
 // Password
 const currentPassword = ref('')
@@ -63,7 +84,7 @@ async function handleAvatarSelect(event: Event) {
       await authStore.updateAvatar(base64)
       toast.success(t('profile.changeAvatar') + ' ✓')
     } catch {
-      toast.error(t('auth.loginFailed'))
+      toast.error(t('common.error'))
     }
   }
   reader.readAsDataURL(file)
@@ -83,7 +104,7 @@ async function handleSaveProfile() {
     profileSaved.value = true
     setTimeout(() => { profileSaved.value = false }, 3000)
   } catch {
-    toast.error(t('auth.loginFailed'))
+    toast.error(t('common.error'))
   } finally {
     savingProfile.value = false
   }
@@ -102,10 +123,21 @@ async function handleChangePassword() {
     setTimeout(() => { passwordSaved.value = false }, 3000)
   } catch (err: unknown) {
     const axiosErr = err as { response?: { status?: number } }
-    toast.error(axiosErr.response?.status === 401 ? t('auth.invalidCredentials') : t('auth.loginFailed'))
+    toast.error(axiosErr.response?.status === 401 ? t('auth.invalidCredentials') : t('common.error'))
   } finally {
     savingPassword.value = false
   }
+}
+
+async function handleDeleteAccount() {
+  const ok = await confirm({
+    title: t('profile.deleteAccount'),
+    message: t('profile.deleteWarning'),
+    confirmText: t('profile.deleteAccount'),
+    danger: true,
+  })
+  if (!ok) return
+  toast.info('This feature is coming soon.')
 }
 
 function handleLanguageChange(code: string) {
@@ -127,20 +159,32 @@ function handleLanguageChange(code: string) {
         <div class="relative group">
           <div
             class="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden cursor-pointer glow-primary"
-            @click="triggerFileInput"
+            @click="hasPhoto ? showPhotoPreview = true : triggerFileInput()"
           >
             <img
-              v-if="avatarPreview || authStore.user?.avatarUrl"
-              :src="avatarPreview ?? authStore.user?.avatarUrl ?? ''"
+              v-if="hasPhoto"
+              :src="photoSrc"
               class="w-full h-full object-cover"
             />
             <span v-else class="text-3xl font-bold text-white">{{ initials }}</span>
 
-            <!-- Hover overlay -->
-            <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+            <!-- Hover overlay (only when no photo) -->
+            <div
+              v-if="!hasPhoto"
+              class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"
+            >
               <v-icon icon="mdi-camera" size="24" color="white" />
             </div>
           </div>
+
+          <!-- Camera icon overlay to change photo -->
+          <button
+            v-if="hasPhoto"
+            class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-lg border-2 border-[#1e1e2e] hover:scale-110 transition-transform"
+            @click.stop="triggerFileInput"
+          >
+            <v-icon icon="mdi-camera" size="14" color="white" />
+          </button>
           <input
             id="avatar-input"
             type="file"
@@ -160,7 +204,7 @@ function handleLanguageChange(code: string) {
           <div class="flex items-center gap-2 mt-3 justify-center sm:justify-start">
             <span class="px-2.5 py-1 rounded-lg bg-primary/15 text-primary-light text-[11px] font-medium">
               <v-icon icon="mdi-shield-account" size="12" class="mr-1" />
-              Member
+              {{ t('profile.member') }}
             </span>
             <span class="px-2.5 py-1 rounded-lg bg-white/5 text-white/40 text-[11px]">
               <v-icon icon="mdi-calendar" size="12" class="mr-1" />
@@ -200,8 +244,7 @@ function handleLanguageChange(code: string) {
             type="submit"
             :disabled="!profileForm"
             :loading="savingProfile"
-            class="font-medium"
-            style="text-transform: none; background: linear-gradient(135deg, #6366f1, #a855f7); color: white;"
+            class="font-medium normal-case bg-gradient-to-br from-[#6366f1] to-[#a855f7] text-white"
           >
             <v-icon icon="mdi-content-save-outline" size="16" class="mr-1.5" />
             {{ t('profile.saveChanges') }}
@@ -253,8 +296,7 @@ function handleLanguageChange(code: string) {
             type="submit"
             :disabled="!passwordForm"
             :loading="savingPassword"
-            class="font-medium"
-            style="text-transform: none; background: linear-gradient(135deg, #6366f1, #a855f7); color: white;"
+            class="font-medium normal-case bg-gradient-to-br from-[#6366f1] to-[#a855f7] text-white"
           >
             <v-icon icon="mdi-lock-reset" size="16" class="mr-1.5" />
             {{ t('profile.updatePassword') }}
@@ -265,7 +307,7 @@ function handleLanguageChange(code: string) {
 
     <!-- Language Preference -->
     <div class="rounded-2xl border border-white/5 bg-card p-5 md:p-6">
-      <h3 class="text-sm font-semibold mb-4">{{ t('languages.en').includes('English') ? 'Language' : t('profile.title').split(' ')[0] }}</h3>
+      <h3 class="text-sm font-semibold mb-4">{{ t('profile.language') }}</h3>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <button
@@ -292,13 +334,63 @@ function handleLanguageChange(code: string) {
       </div>
     </div>
 
+    <!-- Theme Color -->
+    <div class="rounded-2xl border border-white/5 bg-card p-5 md:p-6">
+      <h3 class="text-sm font-semibold mb-4">{{ t('profile.themeColor') }}</h3>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button
+          v-for="opt in accentOptions"
+          :key="opt.key"
+          class="flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all text-left"
+          :class="accentColor === opt.key
+            ? 'border-primary/40 bg-primary/10'
+            : 'border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]'"
+          @click="handleAccentChange(opt.key)"
+        >
+          <span
+            class="w-6 h-6 rounded-full shrink-0 flex items-center justify-center"
+            :style="{ background: opt.gradient }"
+          >
+            <v-icon
+              v-if="accentColor === opt.key"
+              icon="mdi-check"
+              size="14"
+              color="white"
+            />
+          </span>
+          <p
+            class="text-xs font-medium"
+            :class="accentColor === opt.key ? 'text-primary-light' : 'text-white/70'"
+          >
+            {{ t(`profile.${opt.key}`) }}
+          </p>
+        </button>
+      </div>
+    </div>
+
     <!-- Danger Zone -->
     <div class="rounded-2xl border border-error/20 bg-error/5 p-5 md:p-6">
-      <h3 class="text-sm font-semibold text-error mb-2">Danger Zone</h3>
-      <p class="text-xs text-white/30 mb-4">Once you delete your account, there is no going back.</p>
-      <v-btn variant="outlined" color="error" size="small" style="text-transform: none" prepend-icon="mdi-delete-outline">
-        Delete Account
+      <h3 class="text-sm font-semibold text-error mb-2">{{ t('profile.dangerZone') }}</h3>
+      <p class="text-xs text-white/30 mb-4">{{ t('profile.deleteWarning') }}</p>
+      <v-btn variant="outlined" color="error" size="small" class="normal-case" prepend-icon="mdi-delete-outline" @click="handleDeleteAccount">
+        {{ t('profile.deleteAccount') }}
       </v-btn>
     </div>
+
+    <!-- Photo Preview Dialog -->
+    <v-dialog v-model="showPhotoPreview" max-width="440">
+      <v-card class="rounded-2xl bg-card pa-4 text-center">
+        <div class="flex justify-end mb-2">
+          <v-btn icon variant="text" size="small" @click="showPhotoPreview = false">
+            <v-icon icon="mdi-close" />
+          </v-btn>
+        </div>
+        <img
+          :src="photoSrc"
+          class="max-w-[400px] max-h-[400px] w-full rounded-xl object-contain mx-auto"
+        />
+      </v-card>
+    </v-dialog>
   </div>
 </template>

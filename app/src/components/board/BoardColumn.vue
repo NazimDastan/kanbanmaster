@@ -1,19 +1,42 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import draggable from 'vuedraggable'
 import type { Column } from '@/types/board'
 import type { Task } from '@/types/task'
 import TaskCard from './TaskCard.vue'
 
+type ColumnTheme = { color: string; label: string }
+
+const columnThemeMap: Array<{ pattern: RegExp; theme: ColumnTheme }> = [
+  { pattern: /todo|yapılacak/i, theme: { color: '#f59e0b', label: 'warning' } },
+  { pattern: /progress|devam|in progress/i, theme: { color: '#6366f1', label: 'primary' } },
+  { pattern: /done|completed|tamamlan|bitti/i, theme: { color: '#10b981', label: 'success' } },
+]
+
+function getColumnTheme(name: string): ColumnTheme {
+  const match = columnThemeMap.find(({ pattern }) => pattern.test(name))
+  return match?.theme ?? { color: '#64748b', label: 'neutral' }
+}
+
 const { t } = useI18n()
-const props = defineProps<{ column: Column }>()
+const props = defineProps<{
+  column: Column
+  columnIndex: number
+  canDelete: boolean
+}>()
+
+const theme = computed(() => {
+  if (props.column.color) return { color: props.column.color, label: 'custom' }
+  return getColumnTheme(props.column.name)
+})
 
 const emit = defineEmits<{
   taskClick: [task: Task]
   addTask: [columnId: string]
   quickAdd: [data: { columnId: string; title: string }]
   taskMoved: [event: { taskId: string; toColumnId: string; newIndex: number }]
+  deleteColumn: [columnId: string]
 }>()
 
 const showQuickAdd = ref(false)
@@ -37,14 +60,30 @@ function handleDragEnd(event: { item?: { dataset?: { taskId?: string } }; to?: {
 <template>
   <div class="flex flex-col min-w-[272px] max-w-[272px] h-full rounded-xl bg-card-60 border border-white/[0.04]">
     <!-- Header -->
-    <div class="flex items-center justify-between px-3 py-2.5">
+    <div
+      class="flex items-center justify-between px-3 py-2.5 column-header"
+      :style="{ '--col-theme': theme.color }"
+    >
       <div class="flex items-center gap-2">
-        <span class="text-xs font-semibold text-white/70">{{ column.name }}</span>
-        <span class="px-1.5 py-0.5 rounded-md bg-white/5 text-[10px] font-medium text-white/30">{{ column.tasks.length }}</span>
+        <span class="text-xs font-semibold" :style="{ color: theme.color }">{{ column.name }}</span>
+        <span
+          class="px-1.5 py-0.5 rounded-md text-[10px] font-medium text-white/90"
+          :style="{ backgroundColor: theme.color + '26' , color: theme.color }"
+        >{{ column.tasks.length }}</span>
       </div>
-      <button class="text-white/20 hover:text-primary transition-colors" @click="showQuickAdd = true">
-        <v-icon icon="mdi-plus" size="16" />
-      </button>
+      <div class="flex items-center gap-1">
+        <button
+          v-if="canDelete"
+          class="text-white/20 hover:text-red-400 transition-colors"
+          :title="t('board.deleteColumn')"
+          @click="emit('deleteColumn', column.id)"
+        >
+          <v-icon icon="mdi-delete-outline" size="16" />
+        </button>
+        <button class="text-white/20 hover:text-primary transition-colors" @click="showQuickAdd = true">
+          <v-icon icon="mdi-plus" size="16" />
+        </button>
+      </div>
     </div>
 
     <!-- Quick add inline -->
@@ -59,7 +98,7 @@ function handleDragEnd(event: { item?: { dataset?: { taskId?: string } }; to?: {
           @keyup.escape="showQuickAdd = false"
         />
         <div class="flex items-center justify-between">
-          <p class="text-[10px] text-white/20">Enter ↵</p>
+          <p class="text-[10px] text-white/20">Enter &#8629;</p>
           <div class="flex gap-1.5">
             <button class="text-[11px] text-white/30 hover:text-white/60 transition-colors" @click="showQuickAdd = false">{{ t('common.cancel') }}</button>
             <button class="text-[11px] text-primary-light font-medium disabled:opacity-30" :disabled="!quickTitle.trim()" @click="handleQuickSubmit">{{ t('common.add') }}</button>
@@ -107,6 +146,10 @@ function handleDragEnd(event: { item?: { dataset?: { taskId?: string } }; to?: {
 </template>
 
 <style scoped>
+.column-header {
+  border-top: 3px solid var(--col-theme, #64748b);
+  border-radius: 12px 12px 0 0;
+}
 .drag-ghost { opacity: 0.3; border: 1px dashed rgba(99, 102, 241, 0.4) !important; border-radius: 8px; }
 .drag-active { opacity: 0.8; transform: rotate(2deg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
 </style>

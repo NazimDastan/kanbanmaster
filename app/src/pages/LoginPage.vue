@@ -37,12 +37,12 @@ async function handleLogin() {
   <div class="min-h-screen flex animated-gradient">
     <!-- Orbs -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-[20%] left-[20%] w-[30rem] h-[30rem] bg-primary/8 rounded-full blur-[140px]" style="animation: float 8s ease-in-out infinite" />
-      <div class="absolute bottom-[20%] right-[20%] w-[25rem] h-[25rem] bg-secondary/8 rounded-full blur-[120px]" style="animation: float 10s ease-in-out infinite 2s" />
+      <div class="absolute top-[20%] left-[20%] w-[30rem] h-[30rem] bg-primary/8 rounded-full blur-[140px] animate-[float_8s_ease-in-out_infinite]" />
+      <div class="absolute bottom-[20%] right-[20%] w-[25rem] h-[25rem] bg-secondary/8 rounded-full blur-[120px] animate-[float_10s_ease-in-out_infinite_2s]" />
     </div>
 
     <!-- Form side -->
-    <div class="flex-1 flex items-center justify-center px-6 py-12 relative z-10">
+    <div class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12 relative z-10">
       <div class="w-full max-w-sm">
         <!-- Logo -->
         <div class="flex items-center gap-2.5 mb-10">
@@ -58,12 +58,12 @@ async function handleLogin() {
         <v-alert v-if="error" type="error" variant="tonal" closable class="mb-5 text-sm" @click:close="error = ''">{{ error }}</v-alert>
 
         <v-form v-model="form" @submit.prevent="handleLogin">
-          <div class="space-y-3">
+          <fieldset :disabled="authStore.loading" class="space-y-3">
             <v-text-field v-model="emailVal" :label="t('auth.email')" type="email" prepend-inner-icon="mdi-email-outline" :rules="[required(t('auth.email')), emailRule]" />
             <v-text-field v-model="passwordVal" :label="t('auth.password')" :type="showPassword ? 'text' : 'password'" prepend-inner-icon="mdi-lock-outline" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" :rules="[required(t('auth.password')), minLength(6)]" @click:append-inner="showPassword = !showPassword" />
-          </div>
-          <v-btn type="submit" size="large" block :loading="authStore.loading" :disabled="!form" class="mt-5 font-semibold text-white" style="background: linear-gradient(135deg, #6366f1, #a855f7); text-transform: none; letter-spacing: 0;">
-            {{ t('auth.login') }}
+          </fieldset>
+          <v-btn type="submit" size="large" block :loading="authStore.loading" :disabled="!form || authStore.loading" class="mt-5 font-semibold text-white bg-gradient-to-br from-[#6366f1] to-[#a855f7] normal-case tracking-[0]">
+            {{ authStore.loading ? t('common.loading') : t('auth.login') }}
           </v-btn>
         </v-form>
 
@@ -77,7 +77,7 @@ async function handleLogin() {
     <!-- Branding side -->
     <div class="hidden lg:flex flex-1 items-center justify-center relative">
       <div class="text-center px-10 max-w-md relative z-10">
-        <div class="w-20 h-20 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center glow-primary" style="animation: pulseRing 3s ease-in-out infinite">
+        <div class="w-20 h-20 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-primary via-secondary to-accent flex items-center justify-center glow-primary animate-[pulseRing_3s_ease-in-out_infinite]">
           <v-icon icon="mdi-view-column-outline" size="40" color="white" />
         </div>
         <h2 class="text-3xl font-bold mb-3 text-glow">{{ t('auth.brandTitle') }}</h2>

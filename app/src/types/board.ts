@@ -12,6 +12,7 @@ export interface Column {
   boardId: string
   name: string
   position: number
+  color: string
   tasks: Task[]
   createdAt: string
 }

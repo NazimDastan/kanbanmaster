@@ -22,6 +22,8 @@ export default {
     none: 'None',
     clickToView: 'Click to view',
     vsLastPeriod: 'vs last period',
+    noResults: 'No results found',
+    error: 'Something went wrong',
   },
 
   // Auth
@@ -44,6 +46,7 @@ export default {
     invalidCredentials: 'Invalid email or password',
     loginFailed: 'Login failed. Please try again.',
     registerFailed: 'Registration failed. Please try again.',
+    emailInUse: 'This email is already in use',
     brandTitle: 'Organize. Track. Deliver.',
     brandDescription: 'Manage your team\'s tasks with powerful Kanban boards, real-time collaboration, and performance insights.',
     brandJoinTitle: 'Join Your Team',
@@ -73,6 +76,7 @@ export default {
     thisWeek: 'This Week',
     myBoards: 'My Boards',
     openBoard: 'Open board',
+    assignedToMe: 'Assigned to Me',
     noBoardsYet: 'No boards yet',
     createBoardHint: 'Create a board from the Teams page',
     // Onboarding
@@ -81,7 +85,7 @@ export default {
     step1: 'Create a board',
     step2: 'Add tasks',
     step3: 'Track progress',
-    sidebarHint: 'Use the + button in the sidebar under "Boards" to create your first board.',
+    createFirstBoard: 'Create Your First Board',
     // Task list
     allTasks: 'All Tasks',
     completedTasks: 'Completed Tasks',
@@ -101,6 +105,11 @@ export default {
     noColumnsDescription: 'Add your first column to start organizing tasks.',
     addTask: 'Add a task',
     searchTasks: 'Search tasks...',
+    deleteColumn: 'Delete Column',
+    cannotDeleteDefault: 'Default columns cannot be deleted',
+    moveTasksFirst: 'This column has tasks. Move them to another column first.',
+    moveTo: 'Move tasks to',
+    columnColor: 'Column Color',
   },
 
   // Task
@@ -111,6 +120,11 @@ export default {
     deadline: 'Deadline (optional)',
     assignee: 'Assignee',
     unassigned: 'Unassigned',
+    assignTask: 'Assign to a member',
+    reassign: 'Reassign',
+    singleAssigneeNote: 'Only one assignee at a time',
+    searchMembers: 'Search members...',
+    assignedBy: 'Assigned by {name}',
     noDescription: 'No description provided.',
     newTask: 'New Task',
     createTask: 'Create Task',
@@ -125,6 +139,9 @@ export default {
     activity: 'Activity',
     noActivity: 'No activity yet',
     noComments: 'No comments yet',
+    unsavedChanges: 'You have unsaved changes. Discard them?',
+    discardChanges: 'Discard',
+    deleteComment: 'Delete Comment',
     writeComment: 'Write a comment...',
     created: 'Created',
     updated: 'Updated',
@@ -146,6 +163,8 @@ export default {
     newTeam: 'New Team',
     createTeam: 'Create Team',
     teamName: 'Team Name',
+    addBoard: 'Add Board',
+    boardName: 'Board Name',
     noTeamsYet: 'No teams yet',
     noTeamsDescription: 'Create your first team to start collaborating.',
     selectTeam: 'Select a team',
@@ -193,6 +212,7 @@ export default {
     reportFrom: 'Report from {name}',
     noMessage: 'No message',
     unknown: 'Unknown',
+    exportCSV: 'Export CSV',
   },
 
   // Profile
@@ -206,6 +226,16 @@ export default {
     newPassword: 'New Password',
     confirmNewPassword: 'Confirm New Password',
     updatePassword: 'Update Password',
+    language: 'Language',
+    member: 'Member',
+    dangerZone: 'Danger Zone',
+    deleteWarning: 'Once you delete your account, there is no going back.',
+    deleteAccount: 'Delete Account',
+    themeColor: 'Theme Color',
+    purple: 'Purple',
+    blue: 'Blue',
+    green: 'Green',
+    orange: 'Orange',
   },
 
   // Notifications
@@ -227,6 +257,16 @@ export default {
     title: 'Page Not Found',
     description: "The page you're looking for doesn't exist.",
     goHome: 'Go Home',
+  },
+
+  // Error Pages
+  errors: {
+    serverError: 'Server Error',
+    serverErrorDesc: 'Something went wrong on our end. Please try again later.',
+    tryAgain: 'Try Again',
+    forbidden: 'Access Denied',
+    forbiddenDesc: "You don't have permission to access this page.",
+    goBack: 'Go Back',
   },
 
   // Filter
@@ -260,12 +300,14 @@ export default {
     boards: 'Boards',
     createFirstBoard: 'Create first board',
     noBoardsYet: 'No boards yet',
+    recentBoards: 'Recent Boards',
   },
 
   // Navbar
   navbar: {
     profile: 'Profile',
     logout: 'Logout',
+    logoutConfirm: 'Are you sure you want to log out?',
   },
 
   // Validation

@@ -4,7 +4,8 @@
   publish = "dist"
 
 [build.environment]
-  VITE_API_URL = "https://alona-nonforested-remedios.ngrok-free.dev"
+  # Set VITE_API_URL in Netlify dashboard environment variables
+  # VITE_API_URL = "https://your-api-domain.com"
 
 [[redirects]]
   from = "/*"
